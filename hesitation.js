@@ -114,7 +114,7 @@ var VerbaHesitationDetector = (function () {
         this.resetRun();
         this.onDetect = null;
         this.onPause = null;    // called with the pause length in seconds when speech resumes
-        this.onLevel = null;    // called every 250 ms with the loudest frame (dBFS) and the noise floor
+        this.onLevel = null;    // every 250 ms: (loudest frame dBFS, noise floor, noise mode, voice above floor dB)
         this.levelMax = -Infinity;
         this.heardSpeech = false;
         this.silentFrames = 0;
@@ -188,7 +188,7 @@ var VerbaHesitationDetector = (function () {
 
         if (db > this.levelMax) this.levelMax = db;
         if (this.frames % 25 === 0) {
-            if (this.onLevel) this.onLevel(this.levelMax, this.noiseDb, this.noisy);
+            if (this.onLevel) this.onLevel(this.levelMax, this.noiseDb, this.noisy, this.snr);
             this.levelMax = -Infinity;
         }
 
@@ -399,7 +399,7 @@ if (typeof registerProcessor === 'function') {
             this.detector = new VerbaHesitationDetector(sampleRate);
             this.detector.onDetect = function (t) { port.postMessage({ type: 'hesitation', t: t }); };
             this.detector.onPause = function (d) { port.postMessage({ type: 'pause', d: d }); };
-            this.detector.onLevel = function (db, floor, noisy) { port.postMessage({ type: 'level', db: db, floor: floor, noisy: noisy }); };
+            this.detector.onLevel = function (db, floor, noisy, snr) { port.postMessage({ type: 'level', db: db, floor: floor, noisy: noisy, snr: snr }); };
         }
         process(inputs) {
             var input = inputs[0];

@@ -3,7 +3,7 @@
   "short_name": "Verba",
   "description": "Practice public speaking with real-time feedback on filler words, pace and pauses.",
   "lang": "en",
-  "start_url": "./index.html",
+  "start_url": "./mvp.html",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",

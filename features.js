@@ -1,4 +1,4 @@
-/* Verba home page: progress history, results image, and "add to home screen".
+/* Verba MVP: progress history (per profile), results image, and "add to home screen".
  *
  * Everything here runs in the browser. Session history is stored only in this
  * browser's localStorage, and only after the visitor turns progress tracking on.
@@ -7,8 +7,11 @@
 (function () {
     'use strict';
 
-    var KEY = 'verba_history';
     var OPT = 'verba_history_opt';
+    // Each profile has its own history. The first profile keeps the original key.
+    function historyKey() {
+        return window.VerbaProfiles ? window.VerbaProfiles.historyKey() : 'verba_history';
+    }
     var MAX_SESSIONS = 500;
     var CHART_SESSIONS = 30;
 
@@ -17,12 +20,12 @@
     // ── Storage ──
     function readHistory() {
         try {
-            var v = JSON.parse(localStorage.getItem(KEY) || '[]');
+            var v = JSON.parse(localStorage.getItem(historyKey()) || '[]');
             return Array.isArray(v) ? v.filter(function (r) { return r && typeof r.t === 'number'; }) : [];
         } catch (e) { return []; }
     }
     function writeHistory(list) {
-        try { localStorage.setItem(KEY, JSON.stringify(list.slice(-MAX_SESSIONS))); return true; } catch (e) { return false; }
+        try { localStorage.setItem(historyKey(), JSON.stringify(list.slice(-MAX_SESSIONS))); return true; } catch (e) { return false; }
     }
     function optedIn() {
         try { return localStorage.getItem(OPT) === '1'; } catch (e) { return false; }
@@ -66,8 +69,9 @@
     if ($('progressStop')) $('progressStop').addEventListener('click', function () { setOptIn(!optedIn()); render(); });
     if ($('progressClear')) {
         $('progressClear').addEventListener('click', function () {
-            if (!window.confirm('Delete every saved session from this device? This cannot be undone.')) return;
-            try { localStorage.removeItem(KEY); } catch (e) {}
+            var who = window.VerbaProfiles && window.VerbaProfiles.count() > 1 ? ' for ' + window.VerbaProfiles.active().name : '';
+            if (!window.confirm('Delete every saved session' + who + ' from this device? This cannot be undone.')) return;
+            try { localStorage.removeItem(historyKey()); } catch (e) {}
             render();
         });
     }
@@ -306,6 +310,9 @@
         var list = readHistory(), on = optedIn();
         var empty = $('progressEmpty'), body = $('progressBody');
         if (!empty || !body) return;
+        var P = window.VerbaProfiles;
+        var who = P && P.count() > 1 && P.active().name !== 'Me' ? P.active().name : null;
+        if ($('progressTitle')) $('progressTitle').textContent = who ? who + '\u2019s progress' : 'Your progress';
         if (!list.length) {
             empty.hidden = false;
             body.hidden = true;
@@ -331,6 +338,8 @@
         renderTable(list);
         $('progressStop').textContent = on ? 'Stop saving sessions' : 'Resume saving sessions';
     }
+
+    document.addEventListener('verba:profile', function () { render(); });
 
     var resizeTimer = null;
     window.addEventListener('resize', function () {

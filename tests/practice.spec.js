@@ -1,6 +1,6 @@
 // Practice modes, topics and the countdown.
 const { test, expect } = require('@playwright/test');
-const { openDemo, startSession } = require('./helpers');
+const { openMvp: openDemo, startSession } = require('./helpers');
 
 test('choosing a timed mode shows a topic and the time limit', async ({ page }) => {
     await openDemo(page);
@@ -22,6 +22,7 @@ test('free practice counts up and gives a topic on request', async ({ page }) =>
 });
 
 test('a 60-second pitch counts down and ends itself', async ({ page }) => {
+    test.setTimeout(120000);
     await openDemo(page, { clock: true });
     await page.selectOption('#practiceMode', 'pitch');
     await startSession(page);

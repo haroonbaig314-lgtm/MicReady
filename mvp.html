@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verba MVP: Practice Speaking with Live Feedback</title>
+    <meta name="description" content="The full Verba practice tool: live filler, pause and pace feedback, timed practice modes with topics, progress tracking, shareable results and voice profiles. Runs in your browser.">
+    <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="site.css">
+    <link rel="canonical" href="https://haroonbaig314-lgtm.github.io/Verba/mvp.html">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#1e3a2e">
+    <meta property="og:title" content="Verba MVP: Practice Speaking with Live Feedback">
+    <meta property="og:description" content="Live filler, pause and pace feedback, timed practice modes, progress tracking and voice profiles, in your browser.">
+    <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.jpg">
+    <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/Verba/mvp.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.jpg">
+    <meta name="twitter:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="features.css">
+    <link rel="stylesheet" href="dark.css" id="darkCss" media="not all">
+    <script>try{if(localStorage.getItem('verba_theme')==='dark'){document.getElementById('darkCss').media='all';document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
+</head>
+<body class="mvp">
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<!-- Screen flash overlay (filler detection) -->
+<div id="filler-flash" aria-hidden="true"></div>
+
+<!-- Disclaimer Modal (shown on first mic click) -->
+<div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">
+    <div class="disclaimer-card">
+        <div class="disclaimer-header">
+            <h3 id="disclaimerTitle">Before You Start</h3>
+        </div>
+        <div class="disclaimer-body">
+            <p>Word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. Browsers usually remove "um" and "uh" from the transcript, so Verba listens for those sounds directly in your microphone signal. That count is an estimate: it can miss short sounds or occasionally count a long, drawn-out word.</p>
+            <p>For the best experience, use Chrome on a desktop or laptop.</p>
+            <p><strong>Your privacy:</strong> the MVP uses your microphone and your browser's built-in speech recognition. Verba does not record, save, or send your audio or transcript anywhere. Your browser provider (for example Google in Chrome, Microsoft in Edge, or Apple in Safari) may process the audio on its servers to convert it to text. Details are in our <a href="privacy.html#what-we-collect">Privacy Policy</a>.</p>
+        </div>
+        <div class="disclaimer-footer">
+            <button class="disclaimer-cancel" id="disclaimerCancel" type="button">Not now</button>
+            <button class="disclaimer-confirm" id="disclaimerConfirm" type="button">I understand, start</button>
+        </div>
+    </div>
+</div>
+
+<!-- Session Summary Modal -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+    <div class="modal-card">
+        <h3 id="summaryTitle" tabindex="-1">Session Summary</h3>
+        <div class="score-display">
+            <div class="score-value" id="scoreValue">--</div>
+            <div class="score-label" id="scoreLabel">&nbsp;</div>
+        </div>
+        <div class="modal-stats">
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryDuration">0:00</div>
+                <div class="modal-stat-label">Duration</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryWords">0</div>
+                <div class="modal-stat-label">Words Spoken</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryFillers">0</div>
+                <div class="modal-stat-label">Total Fillers</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryWPM" style="color:#1e3a2e">--</div>
+                <div class="modal-stat-label">Avg WPM</div>
+            </div>
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryPauses">0</div>
+                <div class="modal-stat-label">Pauses</div>
+            </div>
+            <div class="modal-stat" id="summaryHedgesWrap">
+                <div class="modal-stat-value" id="summaryHedges">0</div>
+                <div class="modal-stat-label">Hedges</div>
+            </div>
+        </div>
+        <div class="coaching-note" id="coachingNote">Analyzing your session...</div>
+        <div class="repeat-words speaker-breakdown" id="speakerBreakdown" hidden>
+            <h4>Who spoke</h4>
+            <ul id="speakerList"></ul>
+        </div>
+        <div class="repeat-words" id="repeatWords" hidden>
+            <h4>Words you repeated</h4>
+            <ul id="repeatList"></ul>
+        </div>
+        <div class="modal-extras">
+            <label class="save-toggle"><input type="checkbox" id="saveProgress"> <span id="saveProgressText">Save my progress on this device</span></label>
+            <p class="share-label" id="shareLabel">Share your result</p>
+            <div class="share-row" role="group" aria-labelledby="shareLabel">
+                <button type="button" class="share-btn" id="shareNative" hidden>Share image</button>
+                <button type="button" class="share-btn" id="shareStory">Story image</button>
+                <button type="button" class="share-btn" id="shareWide">LinkedIn image</button>
+            </div>
+            <p class="share-note">Images are made in your browser and include only your scores, never your words.</p>
+        </div>
+        <button class="close-modal-btn" id="closeModal">Close &amp; Reset</button>
+    </div>
+</div>
+
+<!-- Voice profiles: consent (shown once, before any voiceprint is made) -->
+<div class="disclaimer-overlay" id="voiceConsentOverlay" role="dialog" aria-modal="true" aria-labelledby="voiceConsentTitle">
+    <div class="disclaimer-card">
+        <div class="disclaimer-header"><h3 id="voiceConsentTitle">Voice profiles use voiceprints</h3></div>
+        <div class="disclaimer-body">
+            <p>A voiceprint is a set of numbers that describes how a person sounds. It is biometric information, so Verba asks before making one.</p>
+            <ul class="consent-points">
+                <li>Verba makes a voiceprint on this device from about 20 seconds of reading aloud, and keeps it only in this browser. It is never uploaded or shared.</li>
+                <li>It is used only to recognize who is speaking during practice on this device.</li>
+                <li>You can delete one voiceprint, or all voice data, at any time from the Voice profiles panel. Clearing this site&rsquo;s data in your browser deletes it too.</li>
+                <li>Record someone&rsquo;s voice only with their permission. For anyone under 13, a parent or guardian must agree first.</li>
+            </ul>
+            <p>Details are in our <a href="privacy.html#voice-profiles">Privacy Policy</a>.</p>
+            <label class="consent-check"><input type="checkbox" id="voiceConsentAgree"> I agree to Verba making and storing voiceprints on this device for the people I add.</label>
+        </div>
+        <div class="disclaimer-footer">
+            <button class="disclaimer-cancel" id="voiceConsentCancel" type="button">Not now</button>
+            <button class="disclaimer-confirm" id="voiceConsentOk" type="button" disabled>Agree and continue</button>
+        </div>
+    </div>
+</div>
+
+<!-- Voice profiles: recording a voice -->
+<div class="disclaimer-overlay" id="voiceEnrollOverlay" role="dialog" aria-modal="true" aria-labelledby="enrollTitle">
+    <div class="disclaimer-card">
+        <div class="disclaimer-header"><h3 id="enrollTitle">Record a voice</h3></div>
+        <div class="disclaimer-body">
+            <p>Read this aloud at your normal speaking volume. It takes about 20 seconds.</p>
+            <blockquote class="enroll-passage" id="enrollPassage"></blockquote>
+            <div class="enroll-meter" id="enrollMeter" role="progressbar" aria-label="Speech recorded" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div class="enroll-bar" id="enrollBar"></div></div>
+            <p class="enroll-status" id="enrollStatus" role="status" aria-live="polite"></p>
+        </div>
+        <div class="disclaimer-footer">
+            <button class="disclaimer-cancel" id="enrollCancel" type="button">Cancel</button>
+            <button class="disclaimer-cancel" id="enrollStop" type="button" hidden>Finish now</button>
+            <button class="disclaimer-confirm" id="enrollStart" type="button">Start recording</button>
+            <button class="disclaimer-confirm" id="enrollDone" type="button" hidden>Done</button>
+        </div>
+    </div>
+</div>
+
+<header class="nav-scrolled">
+    <nav aria-label="Primary">
+        <a href="index.html" class="logo">VERBA <span class="beta-badge">Beta</span></a>
+        <div class="nav-links">
+            <a href="future.html">Future</a>
+        </div>
+    </nav>
+</header>
+
+<main id="main">
+<section class="demo-section mvp-page" id="demo">
+    <div class="demo-container">
+        <div class="demo-badge">MVP</div>
+        <h1>Verba <span class="highlight">MVP</span></h1>
+        <p class="demo-subtitle">The full practice tool: live feedback on fillers, pauses and pace, timed practice modes with topics, progress tracking, shareable results and voice profiles. Everything runs in your browser.</p>
+        <p class="browser-note">Speech recognition works best in Chrome or Edge on desktop.</p>
+
+        <div class="profile-bar" id="profileBar">
+            <div class="profile-row">
+                <div class="practice-field">
+                    <label class="lang-selector-label" for="profileSelect">Practicing as</label>
+                    <div class="lang-select-row">
+                        <select class="lang-select" id="profileSelect"></select>
+                        <span class="lang-select-arrow" aria-hidden="true">&#9660;</span>
+                    </div>
+                </div>
+                <button type="button" class="topic-btn" id="profileAddBtn">Add a person</button>
+                <button type="button" class="topic-btn" id="profileEditBtn" aria-expanded="false" aria-controls="profileForm">Rename or remove</button>
+            </div>
+            <form class="profile-form" id="profileForm" hidden>
+                <label class="lang-selector-label" for="profileName" id="profileFormLabel">Name</label>
+                <div class="profile-form-row">
+                    <input type="text" id="profileName" maxlength="30" autocomplete="off" required>
+                    <button type="submit" class="progress-btn">Save</button>
+                    <button type="button" class="progress-btn secondary" id="profileCancel">Cancel</button>
+                </div>
+                <button type="button" class="progress-btn secondary danger" id="profileRemove" hidden>Remove this person</button>
+            </form>
+            <p class="profile-status" id="profileStatus" role="status" aria-live="polite"></p>
+            <p class="profile-status voice-status" id="voiceStatus" role="status" aria-live="polite"></p>
+        </div>
+
+        <div class="demo-card-wrap" id="demoCardWrap">
+        <div class="demo-card" id="demoCard">
+
+            <div class="stats-row">
+                <div class="stat-block">
+                    <div class="timer" id="timer">0:00</div>
+                    <div class="stat-label" id="timerLabel">Duration</div>
+                </div>
+                <div class="stat-block">
+                    <div class="wpm-value" id="wpmDisplay">--</div>
+                    <div class="stat-label">WPM</div>
+                </div>
+                <div class="stat-block">
+                    <div class="words-value" id="wordsDisplay">0</div>
+                    <div class="stat-label">Words</div>
+                </div>
+                <div class="stat-block">
+                    <div class="words-value" id="pauseDisplay">0</div>
+                    <div class="stat-label">Pauses</div>
+                </div>
+            </div>
+
+            <div class="filler-counters" id="fillerCounters"></div>
+            <p class="filler-est-note">"Um" and "uh" are counted from the sound of your voice, because browsers usually leave them out of the transcript, and each one is marked in the transcript where it happened. That count is an estimate and is worked out on your device.</p>
+            <p class="noise-note" id="noiseNote" role="status" hidden>Background noise detected. Verba has switched to its noise settings: only pauses of 1 second or longer are counted, and a sound has to be close to your speaking volume to count as an &ldquo;um.&rdquo;</p>
+            <p class="mic-note" id="micNote" role="status" hidden>Verba is not receiving sound for its own analysis in this browser, so &ldquo;um,&rdquo; &ldquo;uh,&rdquo; and pauses can only be estimated from the transcript. Chrome or Edge on a computer gives the full result.</p>
+
+            <div class="transcript-box" id="transcript">
+                <div class="typing-dots" id="typingDots" aria-hidden="true"><span></span><span></span><span></span></div><span id="transcript-placeholder" class="transcript-placeholder">Waiting for speech input...</span><span id="transcript-final"></span><span id="transcript-interim" class="interim-text"></span>
+            </div>
+
+            <div class="practice-wrap" id="practiceWrap">
+                <div class="practice-row">
+                    <div class="practice-field">
+                        <label class="lang-selector-label" for="practiceMode">Practice mode</label>
+                        <div class="lang-select-row">
+                            <select class="lang-select" id="practiceMode">
+                                <option value="free">Free practice</option>
+                                <option value="pitch">60-second pitch · 1:00</option>
+                                <option value="interview">Interview answer · 2:00</option>
+                                <option value="presentation">Class presentation · 3:00</option>
+                                <option value="impromptu">Impromptu talk · 1:00</option>
+                            </select>
+                            <span class="lang-select-arrow" aria-hidden="true">&#9660;</span>
+                        </div>
+                    </div>
+                    <button type="button" class="topic-btn" id="topicBtn">Give me a topic</button>
+                </div>
+                <p class="practice-prompt" id="practicePrompt" aria-live="polite" hidden></p>
+            </div>
+
+            <div class="lang-selector-wrap" id="langSelectorWrap">
+                <span class="lang-selector-label">Select your language before starting</span>
+                <div class="lang-select-row">
+                    <select class="lang-select" id="langSelect" aria-label="Select language">
+                        <option value="en-US">English · EN</option>
+                        <option value="es-ES">Spanish · ES</option>
+                        <option value="fr-FR">French · FR</option>
+                        <option value="zh-CN">Mandarin · ZH</option>
+                        <option value="de-DE">German · DE</option>
+                        <option value="ja-JP">Japanese · JA</option>
+                        <option value="ar-SA">Arabic · AR</option>
+                        <option value="hi-IN">Hindi · HI</option>
+                        <option value="ko-KR">Korean · KO</option>
+                        <option value="it-IT">Italian · IT</option>
+                        <option value="ru-RU">Russian · RU</option>
+                    </select>
+                    <span class="lang-select-arrow" aria-hidden="true">&#9660;</span>
+                </div>
+            </div>
+
+            <div class="demo-buttons">
+                <div class="mic-col">
+                    <div class="mic-viz-wrap">
+                        <div class="mic-ring" id="micRing" aria-hidden="true"></div>
+                        <button class="mic-button" id="micButton" aria-label="Start recording">
+                            <svg class="mic-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+                        <div class="seg-meter" id="segMeter" aria-hidden="true"></div>
+                    </div>
+                    <div class="button-label-row">
+                        <span class="status-dot" id="statusDot"></span>
+                        <p class="button-label" id="buttonLabel"></p>
+                    </div>
+                </div>
+                <button class="end-session-btn" id="endSessionBtn">End Session</button>
+            </div>
+            <div class="browser-unsupported" id="browserUnsupported">
+                <strong>Your browser does not support live speech recognition.</strong>
+                For the best experience with our live demo, please open this page in Chrome or Edge. On Android, Chrome works great. On iPhone, try Chrome or Safari.
+            </div>
+        </div>
+        </div><!-- /.demo-card-wrap -->
+
+        <div class="progress-panel" id="progress" aria-labelledby="progressTitle">
+            <div class="progress-head">
+                <h3 id="progressTitle">Your progress</h3>
+                <p class="progress-sub">Saved only in this browser on this device. Nothing is sent anywhere.</p>
+            </div>
+            <div class="progress-empty" id="progressEmpty">
+                <p id="progressEmptyText">Progress tracking is off. Turn it on to keep a history of your sessions on this device and see how your filler rate, pace and score change over time.</p>
+                <button type="button" class="progress-btn" id="progressEnable">Turn on progress tracking</button>
+            </div>
+            <div class="progress-body" id="progressBody" hidden>
+                <div class="kpi-row" id="kpiRow"></div>
+                <div class="chart-tabs" role="tablist" aria-label="Chart metric">
+                    <button type="button" role="tab" class="chart-tab" id="tab-fpm" aria-selected="true" data-metric="fpm">Fillers per minute</button>
+                    <button type="button" role="tab" class="chart-tab" id="tab-wpm" aria-selected="false" data-metric="wpm">Pace (WPM)</button>
+                    <button type="button" role="tab" class="chart-tab" id="tab-score" aria-selected="false" data-metric="score">Score</button>
+                </div>
+                <div class="chart-wrap" id="chartWrap" role="tabpanel">
+                    <p class="chart-title" id="chartTitle"></p>
+                    <div class="chart-area" id="chartArea" tabindex="0" aria-describedby="chartTitle"></div>
+                    <div class="chart-tip" id="chartTip" hidden></div>
+                </div>
+                <details class="chart-table">
+                    <summary>Show sessions as a table</summary>
+                    <div class="chart-table-scroll"><table id="historyTable"></table></div>
+                </details>
+                <div class="progress-actions">
+                    <button type="button" class="progress-btn secondary" id="progressStop">Stop saving sessions</button>
+                    <button type="button" class="progress-btn secondary" id="progressClear">Clear my history</button>
+                </div>
+            </div>
+            <button type="button" class="install-btn" id="installBtn" hidden>Add Verba to your home screen</button>
+        </div>
+
+        <div class="progress-panel voice-panel" id="voicePanel" aria-labelledby="voiceTitle">
+            <div class="progress-head">
+                <h3 id="voiceTitle">Voice profiles <span class="beta-tag">Beta</span></h3>
+                <p class="progress-sub">Voiceprints are made and kept only in this browser on this device. They are never uploaded.</p>
+            </div>
+            <div id="voiceSetup">
+                <p class="voice-intro">Teach Verba each person&rsquo;s voice. It can then switch to the right person when they start speaking, and either ignore other voices nearby or keep track of who said what in a group.</p>
+                <button type="button" class="progress-btn" id="voiceSetupBtn">Set up voice profiles</button>
+            </div>
+            <div id="voiceBody" hidden>
+                <ul class="voice-list" id="voiceList"></ul>
+                <fieldset class="voice-options">
+                    <legend>During a session</legend>
+                    <label class="save-toggle"><input type="checkbox" id="voiceAutoSwitch" checked> Switch to the person who is speaking when a session starts</label>
+                    <p class="voice-q" id="voiceModeLabel">When someone else talks:</p>
+                    <label class="voice-radio"><input type="radio" name="voiceMode" id="voiceModeSolo" value="solo" checked> Ignore them: count only the active person&rsquo;s &ldquo;um&rdquo;s</label>
+                    <label class="voice-radio"><input type="radio" name="voiceMode" id="voiceModeGroup" value="group"> Track each person: show who spoke, and their &ldquo;um&rdquo;s, in the summary</label>
+                </fieldset>
+                <p class="voice-note">Works best in a quiet room with at least 3 seconds of speech. In a loud place, Verba may not tell voices apart reliably. The first recording downloads Verba&rsquo;s voice model (about 38&nbsp;MB) from this site; it then works offline.</p>
+                <button type="button" class="progress-btn secondary" id="voiceDeleteAll">Delete all voice data and turn voice profiles off</button>
+                <p class="voice-credit">Speaker model: <a href="https://github.com/wenet-e2e/wespeaker" rel="noopener">WeSpeaker</a> ResNet34-LM, trained on VoxCeleb, used under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>. Runs with <a href="https://github.com/microsoft/onnxruntime" rel="noopener">ONNX Runtime Web</a> (MIT).</p>
+            </div>
+        </div>
+    </div>
+</section>
+</main>
+
+<footer>
+    <p>Built by Haroon Baig.</p>
+    <ul class="legal-footer-links">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="refund.html">Refund Policy</a></li>
+        <li><a href="cookies.html">Cookie Policy</a></li>
+        <li><a href="data-request.html">Data Requests</a></li>
+        <li><button type="button" data-open-consent>Cookie Settings</button></li>
+    </ul>
+    <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
+    <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
+</footer>
+<script src="hesitation.js" defer></script>
+<script src="site.js" defer></script>
+<script src="demo.js" defer></script>
+<script src="profiles.js" defer></script>
+<script src="features.js" defer></script>
+<script src="voiceid.js" defer></script>
+<script src="voice.js" defer></script>
+</body>
+</html>

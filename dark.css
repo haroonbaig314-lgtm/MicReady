@@ -149,6 +149,7 @@ tbody tr:hover { background: var(--d-surface-2); }
 .feature-preview { background: var(--d-surface-2); border-color: var(--d-border); }
 .feature-title h3, .marketplace-card .pack-name, .voice-name, .module-title, .interview-q-text, .language-name { color: var(--d-heading); }
 .feature-title .status, .marketplace-card .pack-price, .interview-pct { color: var(--d-accent); }
+.feature-description a { color: var(--d-accent); }
 .feature-description, .preview-title, .voice-stats, .module-duration { color: var(--d-muted); }
 .progress-bar { background: var(--d-border); }
 .progress-fill { background: #3aa868; }

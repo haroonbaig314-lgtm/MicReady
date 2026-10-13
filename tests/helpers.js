@@ -13,20 +13,24 @@ const FAKE_SPEECH = `(() => {
     };
 })();`;
 
-const PAGES = ['index.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html'];
+const PAGES = ['index.html', 'mvp.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html'];
 
 async function rejectConsent(page) {
     const btn = page.locator('[data-consent="rejected"]');
     if (await btn.isVisible()) await btn.click();
 }
 
-// Opens the home page with the fake speech engine, past the cookie banner.
-async function openDemo(page, { clock = false } = {}) {
+// Opens a page with the live demo (the home page's lightweight demo by default), using the
+// fake speech engine, past the cookie banner.
+async function openDemo(page, { clock = false, path = 'index.html' } = {}) {
     await page.addInitScript(FAKE_SPEECH);
     if (clock) await page.clock.install();
-    await page.goto('/index.html');
+    await page.goto('/' + path);
     await rejectConsent(page);
 }
+
+// The MVP page: the full tool.
+function openMvp(page, opts = {}) { return openDemo(page, Object.assign({}, opts, { path: 'mvp.html' })); }
 
 async function startSession(page) {
     await page.locator('#micButton').click({ force: true });
@@ -48,4 +52,4 @@ function trackErrors(page) {
     return errors;
 }
 
-module.exports = { FAKE_SPEECH, PAGES, rejectConsent, openDemo, startSession, counters, trackErrors };
+module.exports = { FAKE_SPEECH, PAGES, rejectConsent, openDemo, openMvp, startSession, counters, trackErrors };

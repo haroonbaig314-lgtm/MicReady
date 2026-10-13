@@ -2,12 +2,12 @@
  *
  * Network first, cache as fallback, so visitors online always get the latest
  * version. Only this site's own files are cached; requests to other sites
- * (the beehiiv form, the Glide MVP) are never touched.
+ * (the beehiiv form) are never touched.
  */
-var CACHE = 'verba-v1';
+var CACHE = 'verba-v2';
 var CORE = [
-    './', 'index.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html',
-    'home.js', 'features.js', 'features.css', 'dark.css', 'site.js', 'site.css', 'hesitation.js',
+    './', 'index.html', 'mvp.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html',
+    'main.css', 'demo.js', 'home.js', 'features.js', 'features.css', 'profiles.js', 'voice.js', 'voiceid.js', 'voice-worker.js', 'dark.css', 'site.js', 'site.css', 'hesitation.js',
     'fonts/fonts.css', 'fonts/inter-latin-wght-normal.woff2', 'fonts/inter-latin-ext-wght-normal.woff2',
     'favicon.svg', 'hero-bg.webp', 'icons/icon-192.png', 'manifest.webmanifest'
 ];

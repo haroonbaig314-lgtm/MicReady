@@ -56,13 +56,30 @@ test('sitemap lists every page', async ({ request }) => {
     }
 });
 
-test('the on-page tool is labelled MVP and nothing links to the old Glide app', async ({ page }) => {
-    for (const name of ['index.html', 'future.html']) {
-        await page.goto('/' + name);
-        await expect(page.locator('a[href*="glide.page"]')).toHaveCount(0);
-        await expect(page.getByRole('link', { name: /Try (the )?(Verba )?MVP/ })).toHaveCount(0);
-    }
+test('the home page has a lightweight demo and Try the MVP buttons that open the full tool', async ({ page }) => {
     await page.goto('/index.html');
+    await rejectConsent(page);
+    await expect(page.locator('a[href*="glide.page"]')).toHaveCount(0);
+    await expect(page.locator('.demo-badge')).toHaveText('Lightweight Browser Demo');
+    // The hero, the call to action under the demo, and the closing section all lead to the MVP.
+    const ctas = page.getByRole('link', { name: /^Try the (Verba )?MVP$/ });
+    await expect(ctas).toHaveCount(3);
+    for (const href of await ctas.evaluateAll(els => els.map(e => e.getAttribute('href')))) expect(href).toBe('mvp.html');
+    // The full tool's extras are not on the home page.
+    await expect(page.locator('#practiceWrap')).toHaveCount(0);
+    await expect(page.locator('#progress')).toHaveCount(0);
+    await expect(page.locator('#saveProgress')).toHaveCount(0);
+    await page.locator('.hero .cta-buttons a').click();
+    await expect(page).toHaveURL(/\/mvp\.html$/);
     await expect(page.locator('.demo-badge')).toHaveText('MVP');
-    await expect(page.getByText('This is a lightweight browser-based preview')).toHaveCount(0);
+    await expect(page.locator('#practiceWrap')).toBeVisible();
+    await expect(page.locator('#progress')).toBeVisible();
+    await expect(page.locator('#saveProgress')).toHaveCount(1);
 });
+
+test('the Future page links to the MVP and never to the old Glide app', async ({ page }) => {
+    await page.goto('/future.html');
+    await expect(page.locator('a[href*="glide.page"]')).toHaveCount(0);
+    await expect(page.locator('footer a[href="mvp.html"]')).toHaveText('Try MVP');
+});
+

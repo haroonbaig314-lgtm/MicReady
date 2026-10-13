@@ -1,7 +1,7 @@
 // Results images download at the right sizes and contain no transcript text.
 const { test, expect } = require('@playwright/test');
 const fs = require('fs');
-const { openDemo, startSession } = require('./helpers');
+const { openMvp: openDemo, startSession } = require('./helpers');
 
 function pngSize(file) {
     const b = fs.readFileSync(file);
