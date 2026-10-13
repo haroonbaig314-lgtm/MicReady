@@ -49,7 +49,7 @@
         /* ── Beta Badge ── */
         .beta-badge {
             display: inline-block;
-            font-size: 0.5rem;
+            font-size: 0.66rem;
             font-weight: 700;
             background: rgba(255,255,255,0.18);
             border: 1px solid rgba(255,255,255,0.35);
@@ -250,7 +250,7 @@
             max-width: 100%;
         }
 
-        .tl-label strong a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+        .tl-label strong a { color: inherit; text-decoration: underline; text-underline-offset: 3px; display: inline-block; padding: 0.4rem 0.3rem; }
         .tl-label strong {
             font-weight: 700;
             color: rgba(255,255,255,0.9);
@@ -819,12 +819,18 @@
             .language-name { font-size: 0.76rem; }
             .module-item { flex-wrap: wrap; gap: 0.5rem; }
             .progress-bar { width: 100%; margin-top: 0.2rem; }
-            .nav-links a { font-size: 0.75rem; margin-left: 0.5rem; }
-            .logo { font-size: 1.8rem; }
+            .nav-links a { font-size: 0.85rem; margin-left: 0.25rem; display: inline-block; padding: 0.75rem 0.35rem; }
+            .logo { font-size: 1.8rem; white-space: nowrap; }
             .roadmap-timeline { max-width: 100%; padding: 0; }
-            .tl-label { font-size: 0.62rem; }
-            .tl-label strong { font-size: 0.68rem; }
+            .tl-label { font-size: 0.72rem; }
+            .tl-label strong { font-size: 0.78rem; }
             .section-wave svg { height: 44px; }
+        }
+
+        @media (max-width: 380px) {
+            header { padding-left: 1rem; padding-right: 1rem; }
+            .logo { font-size: 1.5rem; letter-spacing: 2px; }
+            .beta-badge { margin-left: 0.4rem; }
         }
 
         @media (max-width: 768px) {

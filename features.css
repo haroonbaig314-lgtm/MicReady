@@ -437,3 +437,10 @@
     .how-step h3 { align-self: center; margin-bottom: 0.2rem; }
 }
 .profile-form input[aria-invalid="true"] { border-color: var(--vf-danger); box-shadow: 0 0 0 1px var(--vf-danger); }
+
+/* ── Phones: tap targets at least 44 px ── */
+@media (max-width: 768px) {
+    .progress-btn, .share-btn { min-height: 44px; }
+    .chart-table summary { padding: 0.75rem 0; }
+    .save-toggle { min-height: 44px; }
+}
