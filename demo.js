@@ -58,6 +58,7 @@
         lastInterim = '';
         lastResultAt = 0;
         noisySeen = false;
+        utterStart = 0;
         hedgeCounts = {};
         pauseCount = 0; longPauseCount = 0; pauseSeconds = 0;
     }
@@ -79,6 +80,7 @@
     var micSignal = 'unknown';  // 'ok' or 'none': whether the sound analysis hears the microphone
     var lastResultAt = 0;       // for estimating pauses from the transcript when it does not
     var noisySeen = false;      // background noise mode was on at some point this session
+    var utterStart = 0;         // when the transcript of the current stretch of speech began (ms)
     var hedgeCounts = {};
     var pauseCount = 0, longPauseCount = 0, pauseSeconds = 0;
     var resumedAt = 0;          // when listening last (re)started, so pauses never span a manual pause
@@ -162,13 +164,22 @@
                     interim += event.results[i][0].transcript;
                 }
             }
+            if (!utterStart && (interim || newFinal)) utterStart = lastActivityTime;
             var hesFromText = false;
             if (newFinal) {
                 accumulatedTranscript += newFinal;
-                var heard = countHesWords(newFinal);
+                var heard = countHesWords(newFinal), unclaimed = 0;
                 for (var h = 0; h < heard; h++) {
-                    if (!claimSoundHit()) { fillerCounts[HES]++; hesFromText = true; }
+                    if (!claimSoundHit()) { fillerCounts[HES]++; hesFromText = true; unclaimed++; }
                 }
+                // Group practice (MVP) assigns each finished stretch of transcript to whoever was
+                // speaking. Results arrive about half a second after the words, hence the offsets.
+                var sum = function (o) { return Object.keys(o).reduce(function (t, k) { return t + o[k]; }, 0); };
+                document.dispatchEvent(new CustomEvent('verba:chunk', { detail: {
+                    start: utterStart - 400, end: Math.max(utterStart, lastActivityTime - 600),
+                    words: wordCount(newFinal), hedges: sum(countHedges(newFinal)), hes: unclaimed, fil: sum(countFillers(newFinal))
+                } }));
+                utterStart = interim ? lastActivityTime : 0;
             }
 
             var fullText = accumulatedTranscript + interim;
@@ -220,6 +231,7 @@
     // ── Pauses (from the microphone analysis) ──
     function textEnd() { return accumulatedTranscript.length + lastInterim.length; }
     function notePause(d) {
+        document.dispatchEvent(new CustomEvent('verba:pause-counted', { detail: { d: d, t: Date.now() } }));
         pauseCount++;
         pauseSeconds += d;
         if (d >= LONG_PAUSE) longPauseCount++;
@@ -366,6 +378,7 @@
         popCounter(HES);
         renderTranscript(accumulatedTranscript, lastInterim);
         renderCounters();
+        document.dispatchEvent(new CustomEvent('verba:hes-counted', { detail: { t: mark.t } }));
     });
 
     // Voice profiles (MVP): a stretch of speech turned out to be someone else's voice, so the
@@ -969,6 +982,10 @@
             modeLabel: MODES[practiceMode].label
         } }));
     }
+
+    // Scoring, shared with group practice (voice.js) so each person is scored the same way.
+    window.VerbaDemo = { calcScore: calcScore, scoreGrade: scoreGrade, scoreColor: scoreColor, formatTime: formatTime,
+                         LONG_PAUSE: LONG_PAUSE, lang: function () { return currentLang; }, mode: function () { return practiceMode; } };
 
     function capitalizeI(phrase) { return phrase.replace(/\bi\b/g, 'I').replace(/\bi'd\b/g, "I'd"); }
 

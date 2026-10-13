@@ -60,7 +60,25 @@ test('the feature extraction matches Kaldi filterbanks', () => {
     expect(maxDiff).toBeLessThan(0.01);
 });
 
-test('voice profiles: consent, two voices, automatic switching, ignoring and tracking other voices', async ({ browserName }, testInfo) => {
+test('a voiceprint from the earlier recognition is deleted and the person is asked to record again', async ({ page }) => {
+    await page.addInitScript(() => {
+        if (sessionStorage.getItem('seeded')) return;
+        sessionStorage.setItem('seeded', '1');
+        localStorage.setItem('verba_voice', JSON.stringify({ consent: true, at: 1, mode: 'solo', autoSwitch: true }));
+        localStorage.setItem('verba_voiceprints', JSON.stringify({ default: { v: new Array(256).fill(0.0625), at: 1, secs: 20 } }));
+    });
+    await page.addInitScript(FAKE_SPEECH);
+    await page.goto('/mvp.html');
+    await rejectConsent(page);
+    await expect(page.locator('#voiceList li').first()).toContainText('please record again');
+    await expect(page.locator('#voiceList li').first().getByRole('button', { name: 'Record again' })).toBeVisible();
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('verba_voiceprints')));
+    expect(stored.default.outdated).toBe(true);
+    expect(stored.default.v).toBeUndefined();
+    expect(await page.evaluate(() => window.VerbaVoice.enrolled())).toEqual([]);
+});
+
+test('voice profiles: consent, two voices, automatic switching, ignoring other voices, group practice', async ({ browserName }, testInfo) => {
     test.skip(browserName !== 'chromium' || testInfo.project.name !== 'desktop');
     test.setTimeout(600000);
 
@@ -110,16 +128,32 @@ test('voice profiles: consent, two voices, automatic switching, ignoring and tra
         await page.check('#voiceAutoSwitch');
     });
 
-    // 5. "Track each person": both voices in one session are listed in the summary.
+    // 5. Group practice: Verba follows who is speaking as the two take turns, and each person
+    //    gets their own score, saved to their own progress.
     await withMic(testInfo, fixture('voice-ab-talk.wav'), state, async page => {
         await page.check('#voiceModeGroup');
         await startSession(page);
-        await page.waitForTimeout(19000);
+        await expect(page.locator('#groupLive .group-chip')).toHaveCount(2);
+        await expect(page.locator('#groupLive .group-chip.speaking')).toHaveCount(1, { timeout: 60000 });
+        // Wait until Verba has followed each voice for a while (the recording repeats).
+        await page.waitForFunction(() => {
+            const secs = Array.from(document.querySelectorAll('#groupLive .group-chip'), c => {
+                const m = c.textContent.match(/(\d+):(\d\d)/);
+                return m ? +m[1] * 60 + +m[2] : 0;
+            });
+            return secs.length === 2 && secs.every(x => x >= 7);
+        }, null, { timeout: 120000 });
         await page.locator('#endSessionBtn').click({ force: true });
-        await expect(page.locator('#speakerBreakdown')).toBeVisible();
-        const who = await page.locator('#speakerList li').allTextContents();
-        expect(who.some(t => /^Me: about/.test(t))).toBe(true);
-        expect(who.some(t => /^Sam: about/.test(t))).toBe(true);
+        await expect(page.locator('#groupResults')).toBeVisible();
+        expect((await page.locator('#groupCards .group-name').allTextContents()).sort()).toEqual(['Me', 'Sam']);
+        for (const score of await page.locator('#groupCards .group-score').allTextContents()) expect(score).toMatch(/^\d+$/);
+        await expect(page.locator('#saveProgressText')).toHaveText('Save each person\u2019s results to their own progress');
+        await page.check('#saveProgress');
+        const saved = await page.evaluate(() => {
+            const P = window.VerbaProfiles;
+            return P.list().map(p => p.name + ' ' + JSON.parse(localStorage.getItem(P.historyKey(p.id)) || '[]').length);
+        });
+        expect(saved.sort()).toEqual(['Me 1', 'Sam 1']);
         // Deleting all voice data turns the feature off.
         await page.click('#closeModal');
         page.once('dialog', d => d.accept());

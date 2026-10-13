@@ -18,14 +18,14 @@
     function $(id) { return document.getElementById(id); }
 
     // ── Storage ──
-    function readHistory() {
+    function readHistory(key) {
         try {
-            var v = JSON.parse(localStorage.getItem(historyKey()) || '[]');
+            var v = JSON.parse(localStorage.getItem(key || historyKey()) || '[]');
             return Array.isArray(v) ? v.filter(function (r) { return r && typeof r.t === 'number'; }) : [];
         } catch (e) { return []; }
     }
-    function writeHistory(list) {
-        try { localStorage.setItem(historyKey(), JSON.stringify(list.slice(-MAX_SESSIONS))); return true; } catch (e) { return false; }
+    function writeHistory(list, key) {
+        try { localStorage.setItem(key || historyKey(), JSON.stringify(list.slice(-MAX_SESSIONS))); return true; } catch (e) { return false; }
     }
     function optedIn() {
         try { return localStorage.getItem(OPT) === '1'; } catch (e) { return false; }
@@ -36,13 +36,28 @@
 
     var last = null;       // latest finished session (numbers only)
     var lastSaved = false;
+    var lastGroup = null;  // group practice: one record per person, saved to that person's history
 
     function toRecord(r) {
         return { t: r.t, dur: r.dur, words: r.words, wpm: r.wpm, fil: r.fil, fpm: r.fpm, score: r.score,
                  pau: r.pau, lpau: r.lpau, hed: r.hed, lang: r.lang, mode: r.mode };
     }
     function saveLast() {
-        if (!last || lastSaved || last.dur < 10 || last.words < 5) return;
+        if (!last || lastSaved) return;
+        var P = window.VerbaProfiles;
+        if (lastGroup && P) {
+            // Group practice: each person's own part goes to their own progress.
+            lastGroup.forEach(function (g) {
+                if (!P.get(g.id) || g.rec.dur < 5) return;
+                var key = P.historyKey(g.id), list = readHistory(key);
+                list.push(toRecord(g.rec));
+                writeHistory(list, key);
+            });
+            lastSaved = true;
+            render();
+            return;
+        }
+        if (last.dur < 10 || last.words < 5) return;
         var list = readHistory();
         list.push(toRecord(last));
         if (writeHistory(list)) lastSaved = true;
@@ -52,6 +67,10 @@
     document.addEventListener('verba:session-end', function (e) {
         last = e.detail;
         lastSaved = false;
+        var g = window.VerbaVoice && window.VerbaVoice.lastGroup && window.VerbaVoice.lastGroup();
+        lastGroup = g && g.records && g.records.length ? g.records : null;
+        var label = $('saveProgressText');
+        if (label && lastGroup) label.textContent = 'Save each person\u2019s results to their own progress';
         var cb = $('saveProgress');
         if (cb) cb.checked = optedIn();
         if (optedIn()) saveLast();

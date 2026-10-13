@@ -3,7 +3,7 @@
  *               { type: 'embed', id, samples }    16 kHz audio -> voiceprint
  * Messages out: { type: 'ready' } | { type: 'error', message } | { type: 'emb', id, v }
  */
-importScripts('voiceid.js', 'vendor/ort/ort.wasm.min.js');
+importScripts('voiceid.js' + self.location.search, 'vendor/ort/ort.wasm.min.js');   // ?v=: the page's version of voiceid.js
 
 var ready = null;
 self.onmessage = function (e) {

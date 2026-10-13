@@ -373,5 +373,26 @@
 .enroll-meter[hidden] { display: none; }
 .enroll-bar { height: 100%; width: 0; background: var(--vf-series); transition: width 0.2s ease; }
 .enroll-status { font-size: 0.9rem; color: var(--vf-text); min-height: 1.3em; }
-.speaker-breakdown ul li { display: block; }
 #voiceDeleteAll { white-space: normal; text-align: left; max-width: 100%; line-height: 1.35; }
+
+/* ── Group practice (MVP) ── */
+.group-live { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: center; margin-top: 0.5rem; }
+.group-live[hidden] { display: none; }
+.group-chip {
+    padding: 0.25rem 0.7rem; border-radius: 999px; border: 1.5px solid var(--vf-border);
+    background: var(--vf-surface-2); color: var(--vf-text); font-size: 0.82rem; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.group-chip.speaking { border-color: var(--vf-accent); color: var(--vf-accent); box-shadow: 0 0 0 2px var(--vf-accent) inset; }
+.group-results { margin: -0.75rem 0 1.5rem; text-align: left; }
+.group-results[hidden] { display: none; }
+.group-results h4 { font-size: 0.85rem; font-weight: 700; color: var(--vf-ink); margin-bottom: 0.5rem; }
+.group-cards { display: grid; gap: 0.6rem; }
+.group-card { padding: 0.75rem 0.9rem; background: var(--vf-surface); border: 1.5px solid var(--vf-border); border-radius: 12px; }
+.group-card-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; }
+.group-name { font-weight: 700; color: var(--vf-ink); font-size: 1rem; margin-right: auto; }
+.group-score { font-size: 1.6rem; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.group-grade { font-size: 0.8rem; font-weight: 700; color: var(--vf-muted); }
+.group-stats { font-size: 0.85rem; color: var(--vf-text); margin-top: 0.35rem; line-height: 1.5; }
+.group-tip { font-size: 0.85rem; color: var(--vf-muted); margin-top: 0.25rem; line-height: 1.5; }
+.group-note { font-size: 0.8rem; color: var(--vf-muted); line-height: 1.55; margin-top: 0.6rem; }
+.voice-radio span { flex: 1; }
