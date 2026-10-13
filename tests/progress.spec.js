@@ -1,6 +1,6 @@
 // Progress history: opt-in, numbers only, chart, table, clearing.
 const { test, expect } = require('@playwright/test');
-const { openDemo, startSession } = require('./helpers');
+const { openMvp: openDemo, startSession } = require('./helpers');
 
 async function finishSession(page, words) {
     await startSession(page);

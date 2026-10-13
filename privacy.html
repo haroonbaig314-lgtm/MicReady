@@ -123,26 +123,35 @@
     <h1>Privacy Policy</h1>
     <p class="effective">Effective date: October 13, 2026. Last updated: October 13, 2026.</p>
     <div class="summary">
-        <p><strong>Summary.</strong> The on-page demo does not record or store your voice, and Verba's own code sends no audio or transcripts to any Verba server. Your browser's built-in speech recognition service may process your audio on the browser maker's servers. We collect your email address only if you join our newsletter, and you can unsubscribe at any time. We do not sell personal information, show advertising, or use analytics cookies.</p>
+        <p><strong>Summary.</strong> The lightweight demo and the MVP do not record or store your voice, and Verba's own code sends no audio or transcripts to any Verba server. If you choose to set up voice profiles in the MVP, Verba makes voiceprints on your device, keeps them only in your browser, and never receives them. Your browser's built-in speech recognition service may process your audio on the browser maker's servers. We collect your email address only if you join our newsletter, and you can unsubscribe at any time. We do not sell personal information, show advertising, or use analytics cookies.</p>
     </div>
 
     <h2 id="who-we-are">1. Who we are</h2>
     <p>Verba ("Verba," "we," "us") is an independent student project operated by Haroon Baig in Connecticut, United States. This policy covers the Verba website at <a href="https://haroonbaig314-lgtm.github.io/Verba/">https://haroonbaig314-lgtm.github.io/Verba/</a> (the "Site"), the Verba MVP (the browser-based practice tool on the Site), the Verba newsletter, and an earlier Verba app that was hosted on Glide. Questions about this policy can be sent to <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a>.</p>
 
     <h2 id="what-we-collect">2. Information we collect</h2>
-    <h3>2.1 The MVP (browser-based practice tool)</h3>
-    <p>When you press the microphone button, your browser asks for permission to use your microphone. If you grant it:</p>
+    <h3>2.1 The lightweight demo and the MVP (browser-based practice tools)</h3>
+    <p>The home page has a lightweight demo, and the MVP page has the full practice tool. Both work the same way. When you press the microphone button, your browser asks for permission to use your microphone. If you grant it:</p>
     <ul>
         <li><strong>Speech recognition.</strong> The demo uses the Web Speech API built into your browser. Your browser, not Verba, converts your speech to text. Depending on the browser, this processing may take place on the browser provider's servers (for example, Google for Chrome, Microsoft for Edge, and Apple for Safari) and is governed by that provider's privacy policy.</li>
         <li><strong>Transcript and statistics.</strong> The transcript, filler word counts, words per minute, and session summary exist only in your browser's memory while the page is open. Verba does not record your audio, does not save the transcript, and does not transmit either to Verba or to any other party. Reloading or closing the page erases them.</li>
         <li><strong>Volume meter and "um" detection.</strong> The microphone level meter and the detection of hesitation sounds such as "um" and "uh" are calculated locally in your browser from the live audio signal. That audio is analyzed as it arrives and is never recorded, stored, or transmitted.</li>
+    </ul>
+    <h3 id="voice-profiles">2.1a Profiles and voice profiles (MVP, optional)</h3>
+    <p><strong>Profiles.</strong> In the MVP you can add the names of the people who practice on your device, so each person has a separate progress history. The names you type are stored only in your browser.</p>
+    <p><strong>Voice profiles.</strong> If you turn on voice profiles and agree to the notice shown first, Verba can make a <em>voiceprint</em> for a profile: a list of numbers that describes how that person's voice sounds. A voiceprint is biometric information, and under laws such as the Connecticut Data Privacy Act it is sensitive data. This is how Verba handles it:</p>
+    <ul>
+        <li><strong>Consent first.</strong> Verba makes no voiceprint until you tick the agreement box and choose "Agree and continue." Record a person's voice only with their permission, and for anyone under 13, only with a parent's or guardian's permission.</li>
+        <li><strong>Made and kept on your device.</strong> The person reads a short passage aloud for about 20 seconds. Your browser turns that speech into a voiceprint using a speech model downloaded from the Site, and then discards the audio. The voiceprint is stored only in your browser's local storage. It is never sent to Verba or anyone else, and Verba cannot see it.</li>
+        <li><strong>Used only to recognize who is speaking.</strong> During a practice session, the MVP compares the speech it hears with the voiceprints on your device, so it can switch to the right person, and either ignore other voices or show who spoke in the session summary. That live audio is analyzed as it arrives and is never recorded or stored.</li>
+        <li><strong>Deleting it.</strong> You can delete one voiceprint, or all voice data, from the Voice profiles panel at any time, which also withdraws your consent. Removing a profile deletes its voiceprint, and clearing this site's data in your browser deletes everything. Because Verba never receives voiceprints, they can only be deleted on your device.</li>
     </ul>
     <h3>2.2 Newsletter</h3>
     <p>If you subscribe to the newsletter, we collect the email address you enter. The signup form and mailing list are provided by beehiiv, Inc., which processes your email address on our behalf and may collect technical information such as your IP address, browser type, and email open and click activity, as described in <a href="https://www.beehiiv.com/privacy" rel="noopener" target="_blank">beehiiv's privacy policy</a>. The form loads only after you allow third-party content (see our <a href="cookies.html">Cookie Policy</a>).</p>
     <h3>2.3 Earlier Glide-hosted app</h3>
     <p>An earlier version of Verba was a separate application hosted on Glide (glideapps.com). The Site no longer links to it. If you used it, the information you entered and the recordings you submitted were stored by Glide and sent to OpenAI for transcription (Whisper) and analysis (GPT) in order to produce your feedback. You can ask us to delete that information through the <a href="data-request.html">data request page</a>. Glide's and OpenAI's handling of that data is governed by their respective privacy policies and data processing terms. Do not submit recordings that contain sensitive personal information about yourself or others.</p>
     <h3>2.4 Information stored on your device</h3>
-    <p>The Site stores a few values in your browser's local storage: <code>verba_disclaimer_seen</code>, which records that you have read the demo notice; <code>verba_consent</code>, which records your cookie choice; and <code>verba_theme</code>, which remembers whether you chose dark mode. If you turn on progress tracking, it also stores <code>verba_history_opt</code> (your choice) and <code>verba_history</code>, a list of your past sessions containing only numbers: date, length, pace, filler and hedge counts, pauses and score. Your words and audio are never stored. To make the Site work offline, your browser may also keep a copy of the Site's own files in its cache storage. None of this identifies you or is sent to us, and you can delete your history from the "Your progress" panel or by clearing site data. Details are in the <a href="cookies.html">Cookie Policy</a>.</p>
+    <p>The Site stores a few values in your browser's local storage: <code>verba_disclaimer_seen</code>, which records that you have read the demo notice; <code>verba_consent</code>, which records your cookie choice; and <code>verba_theme</code>, which remembers whether you chose dark mode. If you turn on progress tracking, it also stores <code>verba_history_opt</code> (your choice) and <code>verba_history</code>, a list of your past sessions containing only numbers: date, length, pace, filler and hedge counts, pauses and score. In the MVP, <code>verba_profiles</code> holds the names of the profiles you add, and each added profile's sessions are kept under <code>verba_history:</code> followed by a random code. If you set up voice profiles, <code>verba_voice</code> records your consent and settings and <code>verba_voiceprints</code> holds the voiceprints (see section 2.1a). Your words and audio are never stored. To make the Site work offline, your browser may also keep a copy of the Site's own files in its cache storage. None of this identifies you or is sent to us, and you can delete your history from the "Your progress" panel or by clearing site data. Details are in the <a href="cookies.html">Cookie Policy</a>.</p>
     <h3>2.4a Results images</h3>
     <p>The "Share your result" buttons draw an image of your score, pace, filler rate and pause count in your browser. The image is saved to your device or passed to your device's share menu; Verba never receives it. It contains no words from your session.</p>
     <h3>2.5 Hosting logs</h3>
@@ -150,7 +159,7 @@
     <h3>2.6 When you contact us</h3>
     <p>If you email us, we receive your email address and the contents of your message.</p>
     <h3>2.7 What we do not collect</h3>
-    <p>We do not use analytics tools, advertising networks, tracking pixels, or social media tracking code. We do not ask for your name, location, payment details, or any sensitive personal information on the Site. Fonts are served from our own Site, so loading a page does not send your information to a font provider.</p>
+    <p>We do not use analytics tools, advertising networks, tracking pixels, or social media tracking code. We do not ask for your location or payment details, and we do not collect sensitive personal information. Names you add to profiles and any voiceprints you create stay on your device and are never sent to us. Fonts are served from our own Site, so loading a page does not send your information to a font provider.</p>
 
     <h2 id="how-we-use">3. How we use information</h2>
     <ul>
@@ -162,7 +171,7 @@
     <p>We do not use your information for targeted advertising, we do not sell it, and we do not use it to make decisions that produce legal or similarly significant effects about you.</p>
 
     <h2 id="legal-bases">4. Legal bases for processing (EEA and UK visitors)</h2>
-    <p>We rely on your consent for the newsletter and for loading third-party content, and you may withdraw consent at any time. We rely on our legitimate interests to respond to messages and to keep the Site secure, and on legal obligation where the law requires us to keep or disclose information.</p>
+    <p>We rely on your consent for the newsletter and for loading third-party content, and on your explicit consent for voice profiles, and you may withdraw consent at any time. We rely on our legitimate interests to respond to messages and to keep the Site secure, and on legal obligation where the law requires us to keep or disclose information.</p>
 
     <h2 id="sharing">5. How information is shared</h2>
     <p>We share personal information only with the service providers that operate parts of Verba, and only as needed for them to provide their services:</p>
@@ -184,6 +193,7 @@
         <li><strong>Emails to us:</strong> up to 24 months after the conversation ends, unless a longer period is required by law.</li>
         <li><strong>Privacy request records:</strong> up to 24 months, to show that we handled the request.</li>
         <li><strong>Demo data:</strong> not retained. It is erased when you leave or reload the page.</li>
+        <li><strong>Profiles, saved progress and voiceprints:</strong> kept only in your browser until you delete them in the MVP or clear this site's data. Verba never holds a copy.</li>
     </ul>
 
     <h2 id="your-rights">7. Your privacy rights</h2>
@@ -208,7 +218,7 @@
     <p>We send email only to people who subscribe. Every newsletter email contains an unsubscribe link, and you can also unsubscribe by emailing <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a>. We process unsubscribe requests promptly and within 10 business days at most.</p>
 
     <h2 id="children">9. Children's privacy</h2>
-    <p>The Site and the newsletter are not directed to children under 13, and we do not knowingly collect personal information from children under 13. You must be at least 13 to subscribe to the newsletter, and users under 18 should have a parent or guardian's permission. If you believe a child under 13 has given us personal information, contact <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a> and we will delete it promptly. The MVP collects no personal information from any user.</p>
+    <p>The Site and the newsletter are not directed to children under 13, and we do not knowingly collect personal information from children under 13. You must be at least 13 to subscribe to the newsletter, and users under 18 should have a parent or guardian's permission. If you believe a child under 13 has given us personal information, contact <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a> and we will delete it promptly. The MVP sends no personal information to Verba from any user. A voice profile for a child under 13 may be created only with a parent's or guardian's permission, and it stays on that device.</p>
 
     <h2 id="security">10. Security</h2>
     <p>The Site is served over HTTPS. We limit the personal information we hold and rely on established providers to store it. No method of transmission or storage is completely secure, so we cannot guarantee absolute security.</p>
