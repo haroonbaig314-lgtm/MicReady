@@ -17,15 +17,17 @@
 var VerbaHesitationDetector = (function () {
     'use strict';
 
+    // Tuned on Whisper-aligned conversational speech (DisfluencySpeech validation split),
+    // favouring precision: a wrong buzz is worse than a missed one.
     var DEFAULTS = {
         minDuration: 0.30,      // seconds of steady voicing before a hesitation is reported
-        minEnergyDb: 12,        // dB above the running noise floor to count as speech
-        maxAperiodicity: 0.30,  // YIN threshold: lower means more strictly periodic (voiced)
-        maxPitchStep: 0.9,      // semitones of pitch change allowed over 50 ms
-        maxPitchRange: 4.0,     // semitones of pitch range allowed over the whole sound
-        maxSpectralChange: 4.5, // mean dB change of the spectral envelope over 50 ms
-        minStableFraction: 0.7, // share of frames that must have a steady spectrum
-        glitchFrames: 3,        // consecutive bad frames tolerated inside one sound
+        minEnergyDb: 16,        // dB above the running noise floor to count as speech
+        maxAperiodicity: 0.35,  // YIN threshold: lower means more strictly periodic (voiced)
+        maxPitchStep: 1.0,      // semitones of pitch change allowed over 50 ms
+        maxPitchRange: 3.5,     // semitones of pitch range allowed over the whole sound
+        maxSpectralChange: 4.0, // mean dB change of the spectral envelope over 50 ms
+        minStableFraction: 0.75,// share of frames that must have a steady spectrum
+        glitchFrames: 5,        // consecutive bad frames tolerated inside one sound
         minF0: 70,
         maxF0: 420
     };
