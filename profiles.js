@@ -4,6 +4,7 @@
  *   verba_profiles   { list: [{ id, name }], active: id }
  *   history          the first profile keeps "verba_history"; others use "verba_history:<id>"
  *
+ * Names with swear words, slurs or other offensive words are refused (namecheck.js).
  * Other scripts use window.VerbaProfiles and listen for the "verba:profile" event.
  */
 (function () {
@@ -31,6 +32,8 @@
     function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
     function find(id) { for (var i = 0; i < state.list.length; i++) if (state.list[i].id === id) return state.list[i]; return null; }
     function cleanName(name) { return String(name || '').replace(/\s+/g, ' ').trim().slice(0, 30); }
+    // Swear words, slurs and other offensive words are not allowed in names (namecheck.js).
+    function nameOk(name) { return !window.VerbaNameCheck || window.VerbaNameCheck.allowed(name); }
     function announce(reason) {
         document.dispatchEvent(new CustomEvent('verba:profile', { detail: { id: state.active, reason: reason || 'user' } }));
     }
@@ -52,7 +55,7 @@
         },
         add: function (name) {
             name = cleanName(name);
-            if (!name || state.list.length >= MAX_PROFILES) return null;
+            if (!name || !nameOk(name) || state.list.length >= MAX_PROFILES) return null;
             var id = 'p' + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36);
             state.list.push({ id: id, name: name });
             state.active = id; save(); render(); announce('user');
@@ -60,7 +63,7 @@
         },
         rename: function (id, name) {
             var p = find(id); name = cleanName(name);
-            if (!p || !name) return false;
+            if (!p || !name || !nameOk(name)) return false;
             p.name = name; save(); render(); announce('rename');
             return true;
         },
@@ -110,6 +113,7 @@
         form.hidden = false;
         $('profileFormLabel').textContent = id ? 'New name for ' + find(id).name : 'Name of the person practicing';
         nameInput.value = id ? find(id).name : '';
+        nameInput.removeAttribute('aria-invalid');
         if (removeBtn) removeBtn.hidden = !id || state.list.length < 2;
         if (editBtn) editBtn.setAttribute('aria-expanded', id ? 'true' : 'false');
         nameInput.focus();
@@ -126,6 +130,7 @@
         });
     }
     if (addBtn) addBtn.addEventListener('click', function () { openForm(null); });
+    if (nameInput) nameInput.addEventListener('input', function () { nameInput.removeAttribute('aria-invalid'); });
     if (editBtn) editBtn.addEventListener('click', function () { if (form && !form.hidden && editing) closeForm(); else openForm(state.active); });
     if ($('profileCancel')) $('profileCancel').addEventListener('click', function () { var back = editing ? editBtn : addBtn; closeForm(); if (back) back.focus(); });
     if (form) {
@@ -133,6 +138,13 @@
             e.preventDefault();
             var name = cleanName(nameInput.value);
             if (!name) { nameInput.focus(); return; }
+            if (!nameOk(name)) {
+                nameInput.setAttribute('aria-invalid', 'true');
+                say('Please choose a different name. Names can\u2019t include swear words, slurs or other offensive words.');
+                nameInput.focus(); nameInput.select();
+                return;
+            }
+            nameInput.removeAttribute('aria-invalid');
             if (editing) { api.rename(editing, name); say('Renamed to ' + name + '.'); }
             else if (api.add(name)) say('Added ' + name + '. You are now practicing as ' + name + '.');
             closeForm();
