@@ -33,6 +33,10 @@ async function recordVoice(page, row) {
     await page.locator('#voiceList li').nth(row).getByRole('button', { name: /Record/ }).click();
     await expect(page.locator('#voiceEnrollOverlay')).toHaveClass(/visible/);
     await page.click('#enrollStart');
+    // The bar fills within one reading of the passage (about 12 s of speech here), not 50 s.
+    const started = Date.now();
+    await page.waitForFunction(() => document.getElementById('voiceEnrollOverlay').getAttribute('data-stage') !== 'recording', null, { timeout: 60000, polling: 100 });
+    expect(Date.now() - started).toBeLessThan(20000);
     await expect(page.locator('#enrollDone')).toBeVisible({ timeout: 150000 });
     await expect(page.locator('#enrollStatus')).toContainText('Saved');
     await page.click('#enrollDone');

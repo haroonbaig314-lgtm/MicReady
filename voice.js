@@ -1,7 +1,7 @@
 /* Verba MVP: voice profiles.
  *
- * With the visitor's consent, each profile can have a voiceprint made from about 20 seconds
- * of speech. During a session Verba compares the speech it hears with those voiceprints:
+ * With the visitor's consent, each profile can have a voiceprint made from about 15 seconds
+ * of reading aloud. During a session Verba compares the speech it hears with those voiceprints:
  *   - solo practice: switch to the person who started speaking, and ignore "um"s from other
  *     voices;
  *   - group practice: follow who is speaking as people take turns, and give each person their
@@ -42,7 +42,8 @@
         loudSnr: 10,        // voice less than this many dB above the background: a very loud place
         loudMargin: 0.25,   // in a very loud place, how clearly another enrolled voice must win
         switchWithin: 30,   // seconds into a session that an automatic switch may happen
-        consistency: 0.7,   // the parts of one voice recording must be at least this alike
+        consistency: 0.3,   // every two 3 s parts of one voice recording must be at least this alike:
+                            // in a quiet room this rejects 0.5% of single voices and catches 99% of two
         clash: 0.6,         // two people's voiceprints this alike are probably the same person
         // Group practice (voiceid.js attribute): the cost of a change of speaker, and how a
         // voice that is no one enrolled scores
@@ -50,7 +51,10 @@
         unknown: 0.35
     };
     function loud() { var s = window.VerbaMicInfo && window.VerbaMicInfo.snr; return typeof s === 'number' && s < CAL.loudSnr; }
-    var ENROLL_SECONDS = 20, ENROLL_MIN = 10;
+    // A voice recording: 10 s of speech, which takes about 12 s of reading aloud (LibriSpeech,
+    // median) and makes a voiceprint as accurate as 20 s does (per 3 s check, 98.1% right vs
+    // 98.2%, never wrong). "Finish now" works from 6 s (97.8% right).
+    var ENROLL_SECONDS = 10, ENROLL_MIN = 6, ENROLL_HANG = 15;
     var SETTINGS = 'verba_voice', PRINTS = 'verba_voiceprints';
 
     function $(id) { return document.getElementById(id); }
@@ -126,9 +130,13 @@
     }
 
     // ── Speech selection: keep 20 ms frames that are clearly louder than the room ──
-    function Collector(onSpeech) {
+    // hang: also keep the quieter frames up to this many frames after a loud one, so whole
+    // stretches of speech count (recording a voice). 0 keeps only the loud frames, as the checks
+    // during a session were calibrated.
+    function Collector(onSpeech, hang) {
         this.raw = []; this.rawLen = 0; this.rate = 48000;
         this.levels = []; this.onSpeech = onSpeech;
+        this.hang = hang || 0; this.n = 0; this.lastLoud = -1e9;
     }
     Collector.prototype.push = function (chunk, rate) {
         this.rate = rate; this.raw.push(chunk); this.rawLen += chunk.length;
@@ -145,7 +153,10 @@
             this.levels.push(db); if (this.levels.length > 250) this.levels.shift();
             var sorted = this.levels.slice().sort(function (a, b) { return a - b; });
             var floor = sorted[Math.floor(sorted.length * 0.1)];
-            if (db > floor + 12 && db > -60) this.onSpeech(x.subarray(f * F, (f + 1) * F), startT + f * 20);
+            var loud = db > floor + 12 && db > -60;
+            if (loud) this.lastLoud = this.n;
+            if (loud || (this.hang && this.n - this.lastLoud <= this.hang && db > -60)) this.onSpeech(x.subarray(f * F, (f + 1) * F), startT + f * 20);
+            this.n++;
         }
     };
 
@@ -216,7 +227,7 @@
                     enroll.speech.push(new Float32Array(frame)); enroll.secs += 0.02;
                     setEnrollProgress(enroll.secs / ENROLL_SECONDS);
                     if (enroll.secs >= ENROLL_SECONDS) finishEnroll();
-                });
+                }, ENROLL_HANG);
                 node.onaudioprocess = function (e) { col.push(new Float32Array(e.inputBuffer.getChannelData(0)), ctx.sampleRate); };
                 src.connect(node); node.connect(sink);
                 enroll.node = node;
@@ -230,7 +241,7 @@
         stopCapture();
         var e = enroll, total = e.speech.reduce(function (s, f) { return s + f.length; }, 0), all = new Float32Array(total), o = 0;
         e.speech.forEach(function (f) { all.set(f, o); o += f.length; });
-        setEnrollStage('saving', 'Making the voiceprint on this device…');
+        setEnrollStage('saving', 'Got it. You can stop reading. Making the voiceprint on this device…');
         var parts = [], step = 16000 * CAL.window;
         for (var i = 0; i + step * 0.5 <= all.length; i += step) parts.push(all.slice(i, Math.min(all.length, i + step)));
         var vecs = [];
@@ -240,8 +251,9 @@
             if (!enroll || enroll !== e) return;
             var avg = V.average(vecs);
             if (!avg || vecs.length < 2) { e.finishing = false; setEnrollStage('failed', 'Not enough clear speech was recorded. Try again somewhere quieter.'); return; }
-            // Consistency: the parts of one reading should sound like the same person.
-            var agree = vecs.reduce(function (s, v) { return s + V.cosine(v, avg); }, 0) / vecs.length;
+            // Consistency: every two parts of one reading should sound like the same person.
+            var agree = 1;
+            vecs.forEach(function (a, i) { vecs.slice(i + 1).forEach(function (b) { agree = Math.min(agree, V.cosine(a, b)); }); });
             if (agree < CAL.consistency) { e.finishing = false; setEnrollStage('failed', 'The recording was too noisy or had more than one voice. Try again somewhere quieter.'); return; }
             var clash = enrolledIds().filter(function (id) { return id !== e.id && V.cosine(printFor(id), avg) >= CAL.clash; })
                 .map(function (id) { return P.get(id).name; });
