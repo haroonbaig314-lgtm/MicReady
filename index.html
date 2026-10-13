@@ -1068,10 +1068,6 @@
             box-shadow: 0 8px 30px rgba(220, 38, 38, 0.1);
         }
 
-        /* Visualizer (legacy bar row — hidden) */
-        .visualizer-container {
-            display: none;
-        }
         /* ── Mic ring visualizer ── */
         .mic-viz-wrap {
             position: relative;
@@ -1138,23 +1134,6 @@
         @media (prefers-reduced-motion: reduce) {
             .mic-ring { transition: none; }
         }
-        /* Legacy visualizer (kept for hidden div ── */
-        .visualizer-container-hidden {
-            height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 3px;
-            margin-bottom: 1.5rem;
-        }
-        .visualizer-bar {
-            width: 5px;
-            background: #2d5a44;
-            border-radius: 3px;
-            height: 4px;
-            transition: height 0.08s ease;
-        }
-
         /* Stats row */
         .stats-row {
             display: flex;
@@ -1222,6 +1201,20 @@
             line-height: 1;
         }
         .filler-counter-card.active .filler-counter-number { color: #dc2626; }
+        .filler-counter-est {
+            font-size: 0.55rem;
+            color: #636e72;
+            margin-top: 0.1rem;
+            white-space: nowrap;
+        }
+        .filler-est-note {
+            font-size: 0.75rem;
+            line-height: 1.5;
+            color: #4a5568;
+            text-align: center;
+            margin: -0.4rem auto 1.1rem;
+            max-width: 460px;
+        }
         .filler-counter-label {
             font-size: 0.58rem;
             color: #636e72;
@@ -2239,7 +2232,7 @@
             <h3 id="disclaimerTitle">Before You Start</h3>
         </div>
         <div class="disclaimer-body">
-            <p>Filler word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. On mobile or in Safari, words like "um" and "uh" may not always be detected since some browsers filter out non-words automatically.</p>
+            <p>Word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. Browsers usually remove "um" and "uh" from the transcript, so Verba listens for those sounds directly in your microphone signal. That count is an estimate: it can miss short sounds or occasionally count a long, drawn-out word.</p>
             <p>For the best experience, use Chrome on a desktop or laptop.</p>
             <p><strong>Your privacy:</strong> the demo uses your microphone and your browser's built-in speech recognition. Verba does not record, save, or send your audio or transcript anywhere. Your browser provider (for example Google in Chrome, Microsoft in Edge, or Apple in Safari) may process the audio on its servers to convert it to text. Details are in our <a href="privacy.html#what-we-collect">Privacy Policy</a>.</p>
         </div>
@@ -2493,8 +2486,6 @@
         <div class="demo-card-wrap" id="demoCardWrap">
         <div class="demo-card" id="demoCard">
 
-            <div class="visualizer-container" id="visualizer"></div>
-
             <div class="stats-row">
                 <div class="stat-block">
                     <div class="timer" id="timer">0:00</div>
@@ -2511,6 +2502,7 @@
             </div>
 
             <div class="filler-counters" id="fillerCounters"></div>
+            <p class="filler-est-note">"Um" and "uh" are counted from the sound of your voice, because browsers usually leave them out of the transcript. That count is an estimate and is worked out on your device.</p>
 
             <div class="transcript-box" id="transcript">
                 <div class="typing-dots" id="typingDots" aria-hidden="true"><span></span><span></span><span></span></div><span id="transcript-placeholder" class="transcript-placeholder">Waiting for speech input...</span><span id="transcript-final"></span><span id="transcript-interim" class="interim-text"></span>
@@ -2935,24 +2927,41 @@
     <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
     <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
 </footer>
+<script src="hesitation.js"></script>
 <script src="site.js"></script>
 
 <script>
 (function () {
     // ── Language config ──
+    // fillers: words found in the speech-recognition transcript.
+    // hes: hesitation sounds ("um", "uh") that recognizers usually drop. They are counted
+    // from the microphone signal (hesitation.js) and, when a transcript does include
+    // them, matched against those sound detections so nothing is counted twice.
     var LANG_CONFIG = {
-        'en-US': { fillers: ['um', 'uh', 'like'],                               labels: ['UM', 'UH', 'LIKE'] },
-        'es-ES': { fillers: ['este', 'bueno', 'o sea', 'pues'],                 labels: ['ESTE', 'BUENO', 'O SEA', 'PUES'] },
-        'fr-FR': { fillers: ['euh', 'bah', 'genre', 'voila'],                   labels: ['EUH', 'BAH', 'GENRE', 'VOILA'] },
-        'zh-CN': { fillers: ['\u90a3\u4e2a', '\u5c31\u662f', '\u7136\u540e'],   labels: ['\u90a3\u4e2a', '\u5c31\u662f', '\u7136\u540e'] },
-        'de-DE': { fillers: ['\u00e4hm', 'halt', 'eigentlich', 'genau'],        labels: ['\u00c4HM', 'HALT', 'EIGENTLICH', 'GENAU'] },
-        'ja-JP': { fillers: ['\u3048\u30fc\u3068', '\u307e\u3042', '\u306a\u3093\u304b'], labels: ['\u3048\u30fc\u3068', '\u307e\u3042', '\u306a\u3093\u304b'] },
-        'ar-SA': { fillers: ['\u064a\u0639\u0646\u064a', '\u0627\u0645\u0645\u0645', '\u0635\u062d', '\u0637\u064a\u0628'], labels: ['\u064a\u0639\u0646\u064a', '\u0627\u0645\u0645\u0645', '\u0635\u062d', '\u0637\u064a\u0628'] },
-        'hi-IN': { fillers: ['\u092e\u0924\u0932\u092c', '\u0909\u092e', '\u092c\u0938', '\u0924\u094b'], labels: ['\u092e\u0924\u0932\u092c', '\u0909\u092e', '\u092c\u0938', '\u0924\u094b'] },
-        'ko-KR': { fillers: ['\uc5b4', '\uadf8', '\ubb50', '\uadf8\ub2c8\uae4c'],  labels: ['\uc5b4', '\uadf8', '\ubb50', '\uadf8\ub2c8\uae4c'] },
-        'it-IT': { fillers: ['allora', 'cio\u00e8', 'tipo', 'ecco'],               labels: ['ALLORA', 'CIO\u00c8', 'TIPO', 'ECCO'] },
-        'ru-RU': { fillers: ['\u043d\u0443', '\u044d\u0442\u043e', '\u043a\u0430\u043a \u0431\u044b', '\u0432\u043e\u0442'], labels: ['\u041d\u0423', '\u042d\u0422\u041e', '\u041a\u0410\u041a \u0411\u042b', '\u0412\u041e\u0422'] }
+        'en-US': { fillers: ['like'], labels: ['LIKE'],
+                   hes: ['um', 'umm', 'uhm', 'uh', 'uhh', 'er', 'erm'], hesLabel: 'UM / UH' },
+        'es-ES': { fillers: ['este', 'bueno', 'o sea', 'pues'], labels: ['ESTE', 'BUENO', 'O SEA', 'PUES'],
+                   hes: ['eh', 'ehh', 'em', 'mmm'], hesLabel: 'EH / EM' },
+        'fr-FR': { fillers: ['bah', 'genre', 'voila'], labels: ['BAH', 'GENRE', 'VOILA'],
+                   hes: ['euh', 'heu'], hesLabel: 'EUH' },
+        'zh-CN': { fillers: ['那个', '就是', '然后'], labels: ['那个', '就是', '然后'],
+                   hes: ['嗯', '呃'], hesLabel: '嗯 / 呃' },
+        'de-DE': { fillers: ['halt', 'eigentlich', 'genau'], labels: ['HALT', 'EIGENTLICH', 'GENAU'],
+                   hes: ['ähm', 'äh', 'öhm'], hesLabel: 'ÄH / ÄHM' },
+        'ja-JP': { fillers: ['まあ', 'なんか'], labels: ['まあ', 'なんか'],
+                   hes: ['えーと', 'えっと', 'えー'], hesLabel: 'えー / えーと' },
+        'ar-SA': { fillers: ['يعني', 'صح', 'طيب'], labels: ['يعني', 'صح', 'طيب'],
+                   hes: ['اممم', 'امم'], hesLabel: 'اممم' },
+        'hi-IN': { fillers: ['मतलब', 'बस', 'तो'], labels: ['मतलब', 'बस', 'तो'],
+                   hes: ['उम', 'अं'], hesLabel: 'उम' },
+        'ko-KR': { fillers: ['그', '뭐', '그니까'], labels: ['그', '뭐', '그니까'],
+                   hes: ['어', '음'], hesLabel: '어 / 음' },
+        'it-IT': { fillers: ['allora', 'cioè', 'tipo', 'ecco'], labels: ['ALLORA', 'CIOÈ', 'TIPO', 'ECCO'],
+                   hes: ['ehm', 'eh', 'mmm'], hesLabel: 'EHM' },
+        'ru-RU': { fillers: ['ну', 'это', 'как бы', 'вот'], labels: ['НУ', 'ЭТО', 'КАК БЫ', 'ВОТ'],
+                   hes: ['э', 'ээ', 'эм', 'мм'], hesLabel: 'Э / ЭМ' }
     };
+    var HES = '__hes';          // counter key for hesitation sounds
     var currentLang = 'en-US';
     // ── Filler list (multi-word first, then single-word) ──
     var FILLERS = LANG_CONFIG[currentLang].fillers.slice();
@@ -2962,11 +2971,17 @@
     var sessionActive = false;
     var recognition = null;
     var timerInterval = null;
-    var vizInterval = null;
     var sessionDuration = 0;
     var accumulatedTranscript = '';
     var fillerCounts = {};
-    FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
+    function resetCounts() {
+        fillerCounts = {};
+        fillerCounts[HES] = 0;
+        FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
+        pendingSoundHits = [];
+    }
+    function counterKeys() { return [HES].concat(FILLERS); }
+    resetCounts();
     var dotsEl = document.getElementById('typingDots');
     var typingDotsTimer = null;
     var lastActivityTime = 0;
@@ -2975,12 +2990,22 @@
     var customWord = '';        // normalized lowercase custom word active in current session
     var customWordLabel = '';   // display label (uppercased) for the counter tile
     var buzzerAC = null;
+    var pendingSoundHits = [];  // times of sound-based detections not yet matched to transcript words
 
     // ── Build filler counter cards ──
     var counterContainer = document.getElementById('fillerCounters');
     function buildCounterCards() {
         counterContainer.innerHTML = '';
         var cfg = LANG_CONFIG[currentLang];
+        var hesCard = document.createElement('div');
+        hesCard.className = 'filler-counter-card';
+        hesCard.id = 'card-fc-hes';
+        hesCard.title = 'Estimated from the sound of your voice, on your device';
+        hesCard.innerHTML =
+            '<div class="filler-counter-number" id="count-fc-hes">0</div>' +
+            '<div class="filler-counter-label">' + cfg.hesLabel + '</div>' +
+            '<div class="filler-counter-est">by sound, est.</div>';
+        counterContainer.appendChild(hesCard);
         FILLERS.forEach(function (filler, i) {
             var id = 'fc-' + i;
             var card = document.createElement('div');
@@ -2994,14 +3019,6 @@
         });
     }
     buildCounterCards();
-
-    // ── Build visualizer bars ──
-    var vizEl = document.getElementById('visualizer');
-    for (var b = 0; b < 26; b++) {
-        var bar = document.createElement('div');
-        bar.className = 'visualizer-bar';
-        vizEl.appendChild(bar);
-    }
 
     // ── Speech Recognition ──
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -3035,7 +3052,14 @@
                     interim += event.results[i][0].transcript;
                 }
             }
-            if (newFinal) accumulatedTranscript += newFinal;
+            var hesFromText = false;
+            if (newFinal) {
+                accumulatedTranscript += newFinal;
+                var heard = countHesWords(newFinal);
+                for (var h = 0; h < heard; h++) {
+                    if (!claimSoundHit()) { fillerCounts[HES]++; hesFromText = true; }
+                }
+            }
 
             var fullText = accumulatedTranscript + interim;
             var newCounts = countFillers(fullText);
@@ -3050,9 +3074,10 @@
                 fillerCounts[f] = newCounts[f];
             });
 
-            if (detected) {
+            if (detected || hesFromText) {
                 triggerFillerAlert();
             }
+            if (hesFromText) popCounter(HES);
             incremented.forEach(function (f) { popCounter(f); });
 
             renderTranscript(accumulatedTranscript, interim);
@@ -3080,6 +3105,45 @@
         };
     }
 
+    // ── Hesitation sounds ──
+    // Sound-based detections arrive from the microphone analysis (see the mic meter script).
+    document.addEventListener('verba:hesitation', function () {
+        if (!isRecording) return;
+        pendingSoundHits.push(Date.now());
+        fillerCounts[HES]++;
+        triggerFillerAlert();
+        popCounter(HES);
+        renderCounters();
+    });
+
+    // A transcript "um" that arrives within a few seconds of a sound detection is the same event.
+    function claimSoundHit() {
+        var now = Date.now();
+        pendingSoundHits = pendingSoundHits.filter(function (t) { return now - t < 6000; });
+        if (!pendingSoundHits.length) return false;
+        pendingSoundHits.shift();
+        return true;
+    }
+
+    function isUnspacedLang() { return currentLang === 'zh-CN' || currentLang === 'ja-JP'; }
+
+    // Whole-word match for hesitation words (substring match for Chinese and Japanese).
+    function hesRegex(word) {
+        var esc = word.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+        if (isUnspacedLang()) return new RegExp(esc, 'g');
+        try { return new RegExp('(^|[^\\p{L}\\p{N}])' + esc + '(?=[^\\p{L}\\p{N}]|$)', 'giu'); }
+        catch (e) { return new RegExp('(^|\\W)' + esc + '(?=\\W|$)', 'gi'); }
+    }
+
+    function countHesWords(text) {
+        var n = 0;
+        LANG_CONFIG[currentLang].hes.forEach(function (w) {
+            var m = text.match(hesRegex(w));
+            if (m) n += m.length;
+        });
+        return n;
+    }
+
     // ── Filler counting ──
     function isNonLatin(fillers) {
         return /[^\u0000-\u007F]/.test(fillers.join(''));
@@ -3095,29 +3159,45 @@
 
     function countFillers(text) {
         var counts = {};
-        var nonLatin = isNonLatin(FILLERS);
-        var src = nonLatin ? text : text.toLowerCase();
         FILLERS.forEach(function (filler) {
-            var re = fillerRegex(filler, nonLatin);
-            var m = src.match(re);
+            var nonLatin = isNonLatin([filler]);
+            var m = (nonLatin ? text : text.toLowerCase()).match(fillerRegex(filler, nonLatin));
             counts[filler] = m ? m.length : 0;
         });
         return counts;
     }
 
+    function escapeHtml(str) {
+        return str.replace(/[&<>"']/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+    }
+
     function highlightFillers(text) {
-        var sorted = FILLERS.slice().sort(function (a, b) { return b.length - a.length; });
-        var nonLatin = isNonLatin(sorted);
-        var result = text;
-        sorted.forEach(function (filler, idx) {
-            var re = fillerRegex(filler, nonLatin);
-            result = result.replace(re, '\u0000' + idx + '\u0001$&\u0002');
+        var matchers = FILLERS.map(function (f) {
+            return { re: fillerRegex(f, isNonLatin([f])), pre: false, len: f.length };
+        }).concat(LANG_CONFIG[currentLang].hes.map(function (w) {
+            return { re: hesRegex(w), pre: !isUnspacedLang(), len: w.length };
+        }));
+        matchers.sort(function (a, b) { return b.len - a.len; });
+        var ranges = [];
+        matchers.forEach(function (m) {
+            var r;
+            m.re.lastIndex = 0;
+            while ((r = m.re.exec(text)) !== null) {
+                if (!r[0].length) { m.re.lastIndex++; continue; }
+                var start = r.index + (m.pre ? r[1].length : 0), end = r.index + r[0].length;
+                var overlaps = ranges.some(function (g) { return start < g[1] && end > g[0]; });
+                if (!overlaps) ranges.push([start, end]);
+            }
         });
-        sorted.forEach(function (filler, idx) {
-            var re = new RegExp('\u0000' + idx + '\u0001([^\u0002]*)\u0002', 'g');
-            result = result.replace(re, '<span class="filler-highlight">$1</span>');
+        ranges.sort(function (a, b) { return a[0] - b[0]; });
+        var out = '', pos = 0;
+        ranges.forEach(function (g) {
+            out += escapeHtml(text.slice(pos, g[0])) + '<span class="filler-highlight">' + escapeHtml(text.slice(g[0], g[1])) + '</span>';
+            pos = g[1];
         });
-        return result;
+        return out + escapeHtml(text.slice(pos));
     }
 
     // ── Score ──
@@ -3206,7 +3286,7 @@
     }
 
     function popCounter(filler) {
-        var i = FILLERS.indexOf(filler);
+        var i = filler === HES ? 'hes' : FILLERS.indexOf(filler);
         if (i === -1) return;
         var cardEl = document.getElementById('card-fc-' + i);
         if (!cardEl) return;
@@ -3266,8 +3346,8 @@
     }
 
     function renderCounters() {
-        FILLERS.forEach(function (filler, i) {
-            var id = 'fc-' + i;
+        counterKeys().forEach(function (filler, k) {
+            var id = filler === HES ? 'fc-hes' : 'fc-' + (k - 1);
             var numEl = document.getElementById('count-' + id);
             var cardEl = document.getElementById('card-' + id);
             if (numEl) numEl.textContent = fillerCounts[filler];
@@ -3293,8 +3373,8 @@
 
     function wpmColor(wpm) {
         if (wpm < 100) return '#3b82f6';   // blue  — too slow
-        if (wpm <= 130) return '#f59e0b';  // amber — acceptable
-        if (wpm <= 165) return '#22c55e';  // green — ideal
+        if (wpm <= 130) return '#b45309';  // amber — acceptable
+        if (wpm <= 165) return '#15803d';  // green — ideal
         return '#ef4444';                   // red   — too fast
     }
 
@@ -3305,7 +3385,7 @@
         wordsEl.textContent = wordCount(accumulatedTranscript);
         if (wpm === 0) {
             wpmEl.textContent = '--';
-            wpmEl.style.color = '#9ca3af';
+            wpmEl.style.color = '#6b7280';
         } else {
             wpmEl.textContent = wpm;
             wpmEl.style.color = wpmColor(wpm);
@@ -3318,28 +3398,12 @@
         return m + ':' + (sec < 10 ? '0' : '') + sec;
     }
 
-    // ── Visualizer ──
-    function animateViz() {
-        var bars = vizEl.querySelectorAll('.visualizer-bar');
-        bars.forEach(function (bar) {
-            if (isRecording) {
-                var h = 8 + Math.random() * 88;
-                bar.style.height = h + '%';
-                bar.style.background = 'hsl(' + (148 + Math.random() * 18) + ',48%,' + (33 + Math.random() * 14) + '%)';
-            } else {
-                bar.style.height = '4px';
-                bar.style.background = '#2d5a44';
-            }
-        });
-    }
-
     // ── Language application ──
     function applyLanguage(langCode) {
         currentLang = langCode;
         var cfg = LANG_CONFIG[langCode];
         FILLERS = cfg.fillers.slice();
-        fillerCounts = {};
-        FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
+        resetCounts();
         buildCounterCards();
         if (recognition) recognition.lang = langCode;
         var box = document.getElementById('transcript');
@@ -3403,10 +3467,10 @@
         // Full reset
         sessionDuration = 0;
         accumulatedTranscript = '';
-        FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
+        resetCounts();
         document.getElementById('timer').textContent = '0:00';
         document.getElementById('wpmDisplay').textContent = '--';
-        document.getElementById('wpmDisplay').style.color = '#9ca3af';
+        document.getElementById('wpmDisplay').style.color = '#6b7280';
         document.getElementById('wordsDisplay').textContent = '0';
         renderTranscript('', '');
         renderCounters();
@@ -3424,6 +3488,11 @@
         var cwInput = document.getElementById('customWordInput');
         customWord = cwInput ? cwInput.value.trim().toLowerCase() : '';
         customWordLabel = customWord ? customWord.toUpperCase() : '';
+        // A custom "um" is already covered by the hesitation counter.
+        if (customWord && LANG_CONFIG[currentLang].hes.indexOf(customWord) !== -1) {
+            customWord = '';
+            customWordLabel = '';
+        }
         if (customWord) {
             FILLERS.push(customWord);
             fillerCounts[customWord] = 0;
@@ -3444,7 +3513,6 @@
             renderWPM();
         }, 1000);
 
-        vizInterval = setInterval(animateViz, 85);
     }
 
     function pauseRecording() {
@@ -3452,7 +3520,6 @@
         stopWatchdog();
         try { recognition.stop(); } catch (e) {}
         clearInterval(timerInterval);
-        clearInterval(vizInterval);
         setStatusDot('');
 
         var btn = document.getElementById('micButton');
@@ -3462,7 +3529,6 @@
         document.getElementById('buttonLabel').textContent = 'Paused - tap to resume';
         document.getElementById('demoCard').classList.remove('recording');
         hideDots();
-        animateViz();
     }
 
     function resumeRecording() {
@@ -3482,7 +3548,6 @@
             document.getElementById('timer').textContent = formatTime(sessionDuration);
             renderWPM();
         }, 1000);
-        vizInterval = setInterval(animateViz, 85);
     }
 
     function endSession() {
@@ -3507,12 +3572,11 @@
         customWord = '';
         customWordLabel = '';
         FILLERS = LANG_CONFIG[currentLang].fillers.slice();
-        fillerCounts = {};
-        FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
+        resetCounts();
 
         document.getElementById('timer').textContent = '0:00';
         document.getElementById('wpmDisplay').textContent = '--';
-        document.getElementById('wpmDisplay').style.color = '#9ca3af';
+        document.getElementById('wpmDisplay').style.color = '#6b7280';
         document.getElementById('wordsDisplay').textContent = '0';
         document.getElementById('buttonLabel').textContent = '';
         document.getElementById('endSessionBtn').style.display = 'none';
@@ -3529,12 +3593,11 @@
         renderTranscript('', '');
         buildCounterCards();
         renderCounters();
-        animateViz();
     }
 
     // ── Modal ──
     function showModal() {
-        var totalFillers = FILLERS.reduce(function (s, f) { return s + fillerCounts[f]; }, 0);
+        var totalFillers = counterKeys().reduce(function (s, f) { return s + fillerCounts[f]; }, 0);
         var words = wordCount(accumulatedTranscript);
         var avgWPM = sessionDuration >= 4 ? Math.round((words / sessionDuration) * 60) : 0;
 
@@ -3587,17 +3650,21 @@
 
         // Find most-used filler
         var topFiller = null, topCount = 0;
-        FILLERS.forEach(function (f) {
+        counterKeys().forEach(function (f) {
             if (fillerCounts[f] > topCount) { topFiller = f; topCount = fillerCounts[f]; }
         });
+        var hesName = currentLang === 'en-US' ? '"um" and "uh"' : LANG_CONFIG[currentLang].hesLabel;
+        var times = function (n) { return n + ' time' + (n !== 1 ? 's' : ''); };
 
         // ── Filler note ──
         var fillerNote = '';
         if (totalFillers === 0) {
-            fillerNote = 'No filler words detected. That takes real discipline and is genuinely uncommon at any experience level.';
+            fillerNote = 'No filler words were detected this session. Detection is an estimate, so a quiet or very short "um" can slip past it. Keep practicing with the same focus.';
         } else if (highFillerRate) {
             // Specific advice per filler word
-            if (topFiller === 'like') {
+            if (topFiller === HES) {
+                fillerNote = 'Hesitation sounds (' + hesName + ') were your most common filler, about ' + times(topCount) + '. They usually surface when your brain is searching for the next word. A deliberate one-beat pause is always more confident than filling the gap out loud.';
+            } else if (topFiller === 'like') {
                 fillerNote = '"Like" appeared ' + topCount + ' time' + (topCount !== 1 ? 's' : '') + ' and is your most frequent filler. It tends to sneak in when you\'re bridging between ideas. Instead of reaching for it, let your last word land and pause before moving on.';
             } else if (topFiller === 'um') {
                 fillerNote = '"Um" was your most common filler at ' + topCount + ' time' + (topCount !== 1 ? 's' : '') + '. It usually surfaces when your brain is searching for the next word. Slowing down slightly gives your thoughts time to form without filling the gap out loud.';
@@ -3608,7 +3675,9 @@
             }
         } else {
             // Low filler rate — specific per filler
-            if (topFiller === 'like') {
+            if (topFiller === HES) {
+                fillerNote = 'Your most common filler was a hesitation sound (' + hesName + '). It usually appears while the next thought forms. Your rate is low, so training yourself to pause silently instead is a small adjustment with a noticeable payoff.';
+            } else if (topFiller === 'like') {
                 fillerNote = 'Your most common filler was "like". It tends to appear when transitioning between ideas. Try replacing it with a deliberate pause instead; your filler rate is low, so this is a small adjustment with a noticeable payoff.';
             } else if (topFiller === 'um') {
                 fillerNote = 'You relied on "um" most. This usually happens when searching for the next word. Slowing down slightly gives your brain time to find it without filling the gap. Your rate is already low, so one more layer of awareness will sharpen this quickly.';
@@ -3695,8 +3764,6 @@
         resetDemo();
     });
 
-    // ── Init ──
-    animateViz();
 })();
 
 // ── Scroll entrance animations (Intersection Observer) ──
@@ -4430,9 +4497,41 @@
         analyser.smoothingTimeConstant = 0.6;
         var source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
+        startHesitationDetector(audioCtx, source);
         micStream = stream;
-        isActive = true;
+        isActive = card.classList.contains('recording');
+        if (!isActive) segMeter.classList.remove('active');
         rafId = requestAnimationFrame(draw);
+    }
+
+    // "Um"/"uh" detection from the raw signal (hesitation.js). It runs in an AudioWorklet
+    // where available, otherwise in a ScriptProcessor. Detections are announced with a
+    // "verba:hesitation" event; the demo script decides whether to count them.
+    function startHesitationDetector(ctx, source) {
+        function announce() { document.dispatchEvent(new CustomEvent('verba:hesitation')); }
+        var sink = ctx.createGain();
+        sink.gain.value = 0;            // keeps the node processing without making any sound
+        sink.connect(ctx.destination);
+        function fallback() {
+            if (audioCtx !== ctx || !window.VerbaHesitationDetector || !ctx.createScriptProcessor) return;
+            var detector = new window.VerbaHesitationDetector(ctx.sampleRate);
+            detector.onDetect = announce;
+            var node = ctx.createScriptProcessor(2048, 1, 1);
+            node.onaudioprocess = function (e) { detector.process(e.inputBuffer.getChannelData(0)); };
+            source.connect(node);
+            node.connect(sink);
+        }
+        if (ctx.audioWorklet && window.AudioWorkletNode) {
+            ctx.audioWorklet.addModule('hesitation.js').then(function () {
+                if (audioCtx !== ctx) return;
+                var node = new AudioWorkletNode(ctx, 'verba-hesitation');
+                node.port.onmessage = function (e) { if (e.data && e.data.type === 'hesitation') announce(); };
+                source.connect(node);
+                node.connect(sink);
+            }).catch(fallback);
+        } else {
+            fallback();
+        }
     }
 
     function teardown() {
@@ -4496,7 +4595,11 @@
     // Watch demoCard for .recording class changes
     new MutationObserver(function () {
         var recording = card.classList.contains('recording');
-        if (recording && !isActive && !audioCtx) {
+        if (recording && !isActive && audioCtx) {
+            // Resumed before the previous stream finished winding down: keep using it.
+            segMeter.classList.add('active');
+            isActive = true;
+        } else if (recording && !isActive && !audioCtx) {
             segMeter.classList.add('active');
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(setup)
