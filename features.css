@@ -249,3 +249,32 @@
     .progress-panel { padding: 1.25rem; border-radius: 16px; }
     .kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── Transcript markers: sounds and pauses the transcript leaves out ── */
+.tx-mark {
+    display: inline-block;
+    margin: 0 0.15em;
+    padding: 0 0.45em;
+    border-radius: 999px;
+    border: 1px solid;
+    font-size: 0.78em;
+    font-weight: 700;
+    line-height: 1.5;
+    white-space: nowrap;
+    vertical-align: 0.05em;
+}
+.tx-hes { color: #b91c1c; background: #fef2f2; border-color: #fca5a5; }
+.tx-pause { color: var(--vf-muted); background: var(--vf-surface-2); border-color: var(--vf-border); font-weight: 600; }
+.mic-note {
+    margin: -0.25rem auto 1rem;
+    max-width: 560px;
+    padding: 0.6rem 0.85rem;
+    background: #fff8ef;
+    border: 1px solid #f2c48d;
+    border-radius: 10px;
+    color: #7c2d12;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    text-align: left;
+}
+.mic-note[hidden] { display: none; }

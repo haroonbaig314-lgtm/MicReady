@@ -3,17 +3,16 @@
 
 (function () {
     // ── Language config ──
-    // fillers: words found in the speech-recognition transcript.
+    // fillers: words found in the speech-recognition transcript. English has none: "like"
+    // is usually a real word ("I like to eat"), so counting it buzzed on correct speech.
     // hes: hesitation sounds ("um", "uh") that recognizers usually drop. They are counted
     // from the microphone signal (hesitation.js) and, when a transcript does include
     // them, matched against those sound detections so nothing is counted twice.
     var LANG_CONFIG = {
-        'en-US': { fillers: ['like'], labels: ['LIKE'],
+        'en-US': { fillers: [], labels: [],
                    hes: ['um', 'umm', 'uhm', 'uh', 'uhh', 'er', 'erm'], hesLabel: 'UM / UH',
                    // Phrases that soften a point. Counted separately from fillers, never in the score.
-                   hedges: ['i think', 'i guess', 'kind of', 'sort of', 'maybe', 'just', 'i feel like', 'probably', 'a little bit', 'perhaps'],
-                   // "like" inside these phrases is a real word, not a filler.
-                   fillerExclusions: { like: ['feel like', 'feels like', 'felt like', 'look like', 'looks like', 'looked like', 'would like', "i'd like"] } },
+                   hedges: ['i think', 'i guess', 'kind of', 'sort of', 'maybe', 'just', 'i feel like', 'probably', 'a little bit', 'perhaps'] },
         'es-ES': { fillers: ['este', 'bueno', 'o sea', 'pues'], labels: ['ESTE', 'BUENO', 'O SEA', 'PUES'],
                    hes: ['eh', 'ehh', 'em', 'mmm'], hesLabel: 'EH / EM' },
         'fr-FR': { fillers: ['bah', 'genre', 'voila'], labels: ['BAH', 'GENRE', 'VOILA'],
@@ -53,6 +52,9 @@
         fillerCounts[HES] = 0;
         FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
         pendingSoundHits = [];
+        marks = [];
+        lastInterim = '';
+        lastResultAt = 0;
         hedgeCounts = {};
         pauseCount = 0; longPauseCount = 0; pauseSeconds = 0;
     }
@@ -66,7 +68,13 @@
     var watchdogInterval = null;
     var isRestarting = false;
     var buzzerAC = null;
-    var pendingSoundHits = [];  // times of sound-based detections not yet matched to transcript words
+    var pendingSoundHits = [];  // sound-based detections not yet matched to transcript words: { t, mark }
+    // Things heard but not in the transcript: hesitation sounds and long pauses, shown in place.
+    var marks = [];             // { at: position in the transcript text, kind: 'hes' | 'pause', d }
+    var lastInterim = '';
+    var MARK_PAUSE = 2;         // seconds; shorter pauses are counted but not shown in the transcript
+    var micSignal = 'unknown';  // 'ok' or 'none': whether the sound analysis hears the microphone
+    var lastResultAt = 0;       // for estimating pauses from the transcript when it does not
     var hedgeCounts = {};
     var pauseCount = 0, longPauseCount = 0, pauseSeconds = 0;
     var resumedAt = 0;          // when listening last (re)started, so pauses never span a manual pause
@@ -135,6 +143,12 @@
 
         recognition.onresult = function (event) {
             lastActivityTime = Date.now();
+            // Without the sound analysis, a long gap between results is the best pause estimate.
+            if (micSignal === 'none' && isRecording && lastResultAt >= resumedAt) {
+                var gap = (lastActivityTime - lastResultAt) / 1000;
+                if (gap >= MARK_PAUSE) notePause(gap);
+            }
+            lastResultAt = lastActivityTime;
             var newFinal = '';
             var interim = '';
             for (var i = event.resultIndex; i < event.results.length; i++) {
@@ -173,6 +187,7 @@
             if (hesFromText) popCounter(HES);
             incremented.forEach(function (f) { popCounter(f); });
 
+            lastInterim = interim;
             renderTranscript(accumulatedTranscript, interim);
             renderCounters();
             renderWPM();
@@ -199,15 +214,26 @@
     }
 
     // ── Pauses (from the microphone analysis) ──
+    function textEnd() { return accumulatedTranscript.length + lastInterim.length; }
+    function notePause(d) {
+        pauseCount++;
+        pauseSeconds += d;
+        if (d >= LONG_PAUSE) longPauseCount++;
+        if (d >= MARK_PAUSE) {
+            marks.push({ at: textEnd(), kind: 'pause', d: d });
+            renderTranscript(accumulatedTranscript, lastInterim);
+        }
+        renderCounters();
+    }
     document.addEventListener('verba:pause', function (e) {
         if (!isRecording || !e.detail) return;
         var d = e.detail.duration;
         // Ignore silence that started before listening resumed (a manual pause).
         if (d > (Date.now() - resumedAt) / 1000 - 0.2) return;
-        pauseCount++;
-        pauseSeconds += d;
-        if (d >= LONG_PAUSE) longPauseCount++;
-        renderCounters();
+        notePause(d);
+    });
+    document.addEventListener('verba:mic-status', function (e) {
+        micSignal = e.detail && e.detail.ok ? 'ok' : 'none';
     });
 
     // ── Practice modes and topics ──
@@ -325,19 +351,24 @@
     // Sound-based detections arrive from the microphone analysis (see the mic meter script).
     document.addEventListener('verba:hesitation', function () {
         if (!isRecording) return;
-        pendingSoundHits.push(Date.now());
+        var mark = { at: textEnd(), kind: 'hes' };
+        marks.push(mark);
+        pendingSoundHits.push({ t: Date.now(), mark: mark });
         fillerCounts[HES]++;
         triggerFillerAlert();
         popCounter(HES);
+        renderTranscript(accumulatedTranscript, lastInterim);
         renderCounters();
     });
 
     // A transcript "um" that arrives within a few seconds of a sound detection is the same event.
     function claimSoundHit() {
         var now = Date.now();
-        pendingSoundHits = pendingSoundHits.filter(function (t) { return now - t < 6000; });
+        pendingSoundHits = pendingSoundHits.filter(function (h) { return now - h.t < 6000; });
         if (!pendingSoundHits.length) return false;
-        pendingSoundHits.shift();
+        // The word is now in the transcript itself, so its marker is no longer needed.
+        var hit = pendingSoundHits.shift();
+        marks = marks.filter(function (m) { return m !== hit.mark; });
         return true;
     }
 
@@ -375,17 +406,11 @@
 
     function countFillers(text) {
         var counts = {};
-        var exclusions = LANG_CONFIG[currentLang].fillerExclusions || {};
         FILLERS.forEach(function (filler) {
             var nonLatin = isNonLatin([filler]);
             var src = nonLatin ? text : text.toLowerCase();
             var m = src.match(fillerRegex(filler, nonLatin));
-            var n = m ? m.length : 0;
-            (exclusions[filler] || []).forEach(function (phrase) {
-                var x = src.match(fillerRegex(phrase, false));
-                if (x) n -= x.length;
-            });
-            counts[filler] = Math.max(0, n);
+            counts[filler] = m ? m.length : 0;
         });
         return counts;
     }
@@ -405,6 +430,27 @@
         });
     }
 
+    function markHtml(m) {
+        if (m.kind === 'pause') {
+            var secs = (Math.round(m.d * 10) / 10).toFixed(1);
+            return ' <span class="tx-mark tx-pause" title="A pause you took">' + secs + ' s pause</span> ';
+        }
+        return ' <span class="tx-mark tx-hes" title="Heard from the sound of your voice">' +
+            escapeHtml(LANG_CONFIG[currentLang].hesLabel.toLowerCase()) + '</span> ';
+    }
+
+    // Where a marker goes: at a word boundary, and never inside a highlighted phrase.
+    function markPositions(text, ranges) {
+        return marks.map(function (m) {
+            var pos = Math.min(m.at, text.length);
+            if (!isUnspacedLang()) {
+                while (pos < text.length && pos > 0 && !/\s/.test(text.charAt(pos - 1)) && !/\s/.test(text.charAt(pos))) pos++;
+            }
+            ranges.forEach(function (g) { if (pos > g[0] && pos < g[1]) pos = g[1]; });
+            return { pos: pos, html: markHtml(m) };
+        }).sort(function (a, b) { return a.pos - b.pos; });
+    }
+
     function highlightFillers(text) {
         var matchers = FILLERS.map(function (f) {
             return { re: fillerRegex(f, isNonLatin([f])), pre: false, len: f.length, cls: 'filler-highlight' };
@@ -412,12 +458,7 @@
             return { re: hesRegex(w), pre: !isUnspacedLang(), len: w.length, cls: 'filler-highlight' };
         })).concat(hedgeList().map(function (h) {
             return { re: fillerRegex(h, false), pre: false, len: h.length + 200, cls: 'hedge-highlight' };
-        })).concat(Object.keys(LANG_CONFIG[currentLang].fillerExclusions || {}).reduce(function (all, f) {
-            // Claim "feel like" and similar first so their "like" is not highlighted as a filler.
-            return all.concat((LANG_CONFIG[currentLang].fillerExclusions[f] || []).map(function (p) {
-                return { re: fillerRegex(p, false), pre: false, len: p.length + 100, cls: '' };
-            }));
-        }, []));
+        }));
         matchers.sort(function (a, b) { return b.len - a.len; });
         var ranges = [];
         matchers.forEach(function (m) {
@@ -431,13 +472,24 @@
             }
         });
         ranges.sort(function (a, b) { return a[0] - b[0]; });
+        var places = markPositions(text, ranges), mi = 0;
         var out = '', pos = 0;
+        function plainTo(end) {
+            while (mi < places.length && places[mi].pos <= end) {
+                out += escapeHtml(text.slice(pos, places[mi].pos)) + places[mi].html;
+                pos = places[mi].pos;
+                mi++;
+            }
+            out += escapeHtml(text.slice(pos, end));
+            pos = end;
+        }
         ranges.forEach(function (g) {
-            var piece = escapeHtml(text.slice(g[0], g[1]));
-            out += escapeHtml(text.slice(pos, g[0])) + (g[2] ? '<span class="' + g[2] + '">' + piece + '</span>' : piece);
+            plainTo(g[0]);
+            out += '<span class="' + g[2] + '">' + escapeHtml(text.slice(g[0], g[1])) + '</span>';
             pos = g[1];
         });
-        return out + escapeHtml(text.slice(pos));
+        plainTo(text.length);
+        return out;
     }
 
     // ── Score ──
@@ -561,7 +613,7 @@
         var placeholderEl = document.getElementById('transcript-placeholder');
         var finalEl = document.getElementById('transcript-final');
         var interimEl = document.getElementById('transcript-interim');
-        var hasFinal = finalText && finalText.trim();
+        var hasFinal = (finalText && finalText.trim()) || marks.length;
         var hasInterim = interimText && interimText.trim();
         if (!hasFinal && !hasInterim) {
             finalEl.innerHTML = '';
@@ -986,8 +1038,6 @@
             // Specific advice per filler word
             if (topFiller === HES) {
                 fillerNote = 'Hesitation sounds (' + hesName + ') were your most common filler, about ' + times(topCount) + '. They usually surface when your brain is searching for the next word. A deliberate one-beat pause is always more confident than filling the gap out loud.';
-            } else if (topFiller === 'like') {
-                fillerNote = '"Like" appeared ' + topCount + ' time' + (topCount !== 1 ? 's' : '') + ' and is your most frequent filler. It tends to sneak in when you\'re bridging between ideas. Instead of reaching for it, let your last word land and pause before moving on.';
             } else if (topFiller === 'um') {
                 fillerNote = '"Um" was your most common filler at ' + topCount + ' time' + (topCount !== 1 ? 's' : '') + '. It usually surfaces when your brain is searching for the next word. Slowing down slightly gives your thoughts time to form without filling the gap out loud.';
             } else if (topFiller === 'uh') {
@@ -999,8 +1049,6 @@
             // Low filler rate — specific per filler
             if (topFiller === HES) {
                 fillerNote = 'Your most common filler was a hesitation sound (' + hesName + '). It usually appears while the next thought forms. Your rate is low, so training yourself to pause silently instead is a small adjustment with a noticeable payoff.';
-            } else if (topFiller === 'like') {
-                fillerNote = 'Your most common filler was "like". It tends to appear when transitioning between ideas. Try replacing it with a deliberate pause instead; your filler rate is low, so this is a small adjustment with a noticeable payoff.';
             } else if (topFiller === 'um') {
                 fillerNote = 'You relied on "um" most. This usually happens when searching for the next word. Slowing down slightly gives your brain time to find it without filling the gap. Your rate is already low, so one more layer of awareness will sharpen this quickly.';
             } else if (topFiller === 'uh') {
@@ -1244,7 +1292,7 @@
     if (!wordEl || !wrapEl) return;
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    var words = ['um...', 'uh...', 'like...', 'you know...', 'nervous pacing...'];
+    var words = ['um...', 'uh...', 'you know...', 'nervous pacing...'];
     var idx = 0;
 
     function runCycle() {
@@ -1665,17 +1713,74 @@
     var audioCtx = null, analyser = null, micStream = null, rafId = null;
     var isActive = false;
     var smoothVol = 0;
+    var AC = window.AudioContext || window.webkitAudioContext;
+
+    // Browsers only let audio run when it starts from a tap or click, and the microphone
+    // stream arrives later, so the context is created during the tap itself.
+    var primed = null;
+    function prime() {
+        if (!primed && !audioCtx) { try { primed = new AC(); } catch (e) { primed = null; } }
+        var ctx = primed || audioCtx;
+        if (ctx && ctx.state === 'suspended' && ctx.resume) ctx.resume().catch(function () {});
+    }
+    ['micButton', 'disclaimerConfirm'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('click', prime, true);
+    });
+
+    // Signal check: the analysis reports its level four times a second. If nothing but
+    // digital silence arrives (some browsers mute this stream while speech recognition
+    // holds the microphone), say so, and let the demo estimate pauses from the transcript.
+    // Times are on the audio clock, which keeps real time even when page timers are throttled.
+    var micNote = document.getElementById('micNote');
+    var lastLevelAt = -1, lastSoundAt = -1, setupAt = 0, stalled = 0, checkTimer = null, micOk = null, usedFallback = false;
+    function setMicOk(ok) {
+        if (ok === micOk) return;
+        micOk = ok;
+        if (micNote) micNote.hidden = ok;
+        document.dispatchEvent(new CustomEvent('verba:mic-status', { detail: { ok: ok } }));
+    }
+    function onLevel(db) {
+        if (!audioCtx) return;
+        lastLevelAt = audioCtx.currentTime;
+        if (db > -100) lastSoundAt = lastLevelAt;
+    }
+    function checkSignal() {
+        if (!isActive || !audioCtx) return;
+        var track = micStream && micStream.getAudioTracks()[0];
+        if (track && (track.muted || track.readyState === 'ended')) { setMicOk(false); return; }
+        if (audioCtx.state !== 'running') {
+            if (audioCtx.resume) audioCtx.resume().catch(function () {});
+            if (++stalled > 5) setMicOk(false);
+            return;
+        }
+        stalled = 0;
+        var now = audioCtx.currentTime;
+        if (lastSoundAt >= 0 && now - lastSoundAt < 4) { setMicOk(true); return; }
+        if (now - setupAt > 3 && lastLevelAt < 0 && !usedFallback) startFallback(audioCtx);
+        if (now - setupAt > 5) setMicOk(false);
+    }
 
     function setup(stream) {
-        var AC = window.AudioContext || window.webkitAudioContext;
-        audioCtx = new AC();
+        audioCtx = primed || new AC();
+        primed = null;
+        if (audioCtx.state === 'suspended' && audioCtx.resume) audioCtx.resume().catch(function () {});
         analyser = audioCtx.createAnalyser();
         analyser.fftSize = 1024;
         analyser.smoothingTimeConstant = 0.6;
         var source = audioCtx.createMediaStreamSource(stream);
         source.connect(analyser);
+        micSource = source;
+        lastLevelAt = -1; lastSoundAt = -1; setupAt = audioCtx.currentTime; stalled = 0; usedFallback = false;
         startHesitationDetector(audioCtx, source);
         micStream = stream;
+        var track = stream.getAudioTracks()[0];
+        if (track) {
+            track.addEventListener('mute', checkSignal);
+            track.addEventListener('ended', checkSignal);
+        }
+        clearInterval(checkTimer);
+        checkTimer = setInterval(checkSignal, 1000);
         isActive = card.classList.contains('recording');
         if (!isActive) segMeter.classList.remove('active');
         rafId = requestAnimationFrame(draw);
@@ -1684,36 +1789,49 @@
     // "Um"/"uh" detection from the raw signal (hesitation.js). It runs in an AudioWorklet
     // where available, otherwise in a ScriptProcessor. Detections are announced with a
     // "verba:hesitation" event; the demo script decides whether to count them.
-    function startHesitationDetector(ctx, source) {
-        function announce() { document.dispatchEvent(new CustomEvent('verba:hesitation')); }
-        function announcePause(d) { document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: d } })); }
-        var sink = ctx.createGain();
-        sink.gain.value = 0;            // keeps the node processing without making any sound
-        sink.connect(ctx.destination);
-        function fallback() {
-            if (audioCtx !== ctx || !window.VerbaHesitationDetector || !ctx.createScriptProcessor) return;
-            var detector = new window.VerbaHesitationDetector(ctx.sampleRate);
-            detector.onDetect = announce;
-            detector.onPause = announcePause;
-            var node = ctx.createScriptProcessor(2048, 1, 1);
-            node.onaudioprocess = function (e) { detector.process(e.inputBuffer.getChannelData(0)); };
-            source.connect(node);
-            node.connect(sink);
+    var micSource = null, workletNode = null, sinkNode = null;
+    function announce() { document.dispatchEvent(new CustomEvent('verba:hesitation')); }
+    function announcePause(d) { document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: d } })); }
+    function sinkFor(ctx) {
+        if (!sinkNode || sinkNode.context !== ctx) {
+            sinkNode = ctx.createGain();
+            sinkNode.gain.value = 0;    // keeps the nodes processing without making any sound
+            sinkNode.connect(ctx.destination);
         }
+        return sinkNode;
+    }
+    // Main-thread version, for browsers without AudioWorklet or when the worklet stays silent.
+    function startFallback(ctx) {
+        usedFallback = true;
+        if (audioCtx !== ctx || !micSource || !window.VerbaHesitationDetector || !ctx.createScriptProcessor) return;
+        if (workletNode) { try { workletNode.disconnect(); } catch (e) {} workletNode = null; }
+        var detector = new window.VerbaHesitationDetector(ctx.sampleRate);
+        detector.onDetect = announce;
+        detector.onPause = announcePause;
+        detector.onLevel = onLevel;
+        var node = ctx.createScriptProcessor(2048, 1, 1);
+        node.onaudioprocess = function (e) { detector.process(e.inputBuffer.getChannelData(0)); };
+        micSource.connect(node);
+        node.connect(sinkFor(ctx));
+    }
+    function startHesitationDetector(ctx, source) {
+        workletNode = null;
         if (ctx.audioWorklet && window.AudioWorkletNode) {
             ctx.audioWorklet.addModule('hesitation.js').then(function () {
-                if (audioCtx !== ctx) return;
+                if (audioCtx !== ctx || usedFallback) return;
                 var node = new AudioWorkletNode(ctx, 'verba-hesitation');
                 node.port.onmessage = function (e) {
                     if (!e.data) return;
                     if (e.data.type === 'hesitation') announce();
                     else if (e.data.type === 'pause') announcePause(e.data.d);
+                    else if (e.data.type === 'level') onLevel(e.data.db);
                 };
                 source.connect(node);
-                node.connect(sink);
-            }).catch(fallback);
+                node.connect(sinkFor(ctx));
+                workletNode = node;
+            }).catch(function () { startFallback(ctx); });
         } else {
-            fallback();
+            startFallback(ctx);
         }
     }
 
@@ -1771,7 +1889,8 @@
             updateSegs(0);
             if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
             if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
-            analyser = null;
+            clearInterval(checkTimer);
+            analyser = null; micSource = null; workletNode = null; sinkNode = null;
         }
     }
 
@@ -1784,9 +1903,18 @@
             isActive = true;
         } else if (recording && !isActive && !audioCtx) {
             segMeter.classList.add('active');
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+            // The browser's voice-call processing (noise suppression, automatic gain) fades
+            // out a held "uhhh" and lifts the room noise in pauses, so ask for the raw signal.
+            navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+                video: false
+            })
                 .then(setup)
-                .catch(function () { segMeter.classList.remove('active'); });
+                .catch(function () {
+                    segMeter.classList.remove('active');
+                    if (primed) { try { primed.close(); } catch (e) {} primed = null; }
+                    setMicOk(false);
+                });
         } else if (!recording && isActive) {
             segMeter.classList.remove('active');
             teardown();
