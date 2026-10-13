@@ -101,6 +101,7 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
 .filler-highlight { color: #fca5a5; }
 .tx-hes { color: #fca5a5; background: #2a1416; border-color: #7f1d1d; }
 .mic-note { background: #2a2210; color: #fcd34d; border-color: #6b5313; }
+.noise-note { background: #13213a; color: #bfdbfe; border-color: #1e3a8a; }
 @keyframes highlight-flash {
     0%   { background: rgba(248, 113, 113, 0.35); }
     100% { background: rgba(248, 113, 113, 0.12); }
