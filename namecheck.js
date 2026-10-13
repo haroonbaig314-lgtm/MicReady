@@ -1,6 +1,7 @@
-/* Verba MVP: keeps swear words, slurs and other offensive words out of profile names.
+/* Verba MVP: keeps swear words, slurs and other offensive words out of profile names, in
+ * English and in the MVP's other languages.
  *
- * The word list and the matching come from obscenity (MIT, vendor/obscenity), which reads
+ * English: the word list and the matching come from obscenity (MIT, vendor/obscenity), which reads
  * through capitals, look-alike characters, and digits or symbols used in place of letters, and
  * has its own exceptions for ordinary words. Verba also reads each name a few more ways: with
  * symbols taken out of each word, with letters typed apart joined up, and with letters typed
@@ -10,12 +11,17 @@
  * among the US Census 2010 surnames, US baby names (1880 to 2008), the most common first and
  * last names of other countries, and some common Thai, Yoruba and Japanese names missing from
  * those lists, except plurals of a listed word. A name that is a listed word itself stays
- * refused. No filter catches everything.
+ * refused.
  *
- * Works as a classic <script> after vendor/obscenity/obscenity.min.js (window.VerbaNameCheck),
- * and from Node for tests.
+ * Spanish, French, Mandarin, German, Japanese, Arabic, Hindi, Korean, Italian and Russian: the
+ * lists in vendor/wordlists, checked against every reading of the name, after the same folding
+ * plus digits and symbols read as letters: whole words, whole phrases, and Chinese, Japanese and
+ * Korean words (and Russian word pieces) anywhere in a word. No filter catches everything.
+ *
+ * Works as a classic <script> after vendor/obscenity/obscenity.min.js and
+ * vendor/wordlists/wordlists.js (window.VerbaNameCheck), and from Node for tests.
  */
-var VerbaNameCheck = (function (O) {
+var VerbaNameCheck = (function (O, W) {
     'use strict';
 
     var ALLOWED = [
@@ -73,6 +79,32 @@ var VerbaNameCheck = (function (O) {
     ];
     var GESTURE = /\u{1F595}/u;   // the raised middle finger emoji
 
+    // ── Other languages ──
+    var LEET = { '0': 'o', '1': 'i', '3': 'e', '4': 'a', '5': 's', '7': 't', '8': 'b', '9': 'g', '@': 'a', '$': 's', '!': 'i', '|': 'i', '+': 't', '\u20ac': 'e' };
+    var WHOLE = {};
+    var PARTS, PHRASES;
+    // Lower case, accents off Latin letters (the Spanish n with a tilde stays a letter of its own;
+    // other scripts keep theirs, such as the Russian short i), and the Russian yo read as ye, as
+    // in the lists.
+    function foldOther(s) {
+        return Array.from(s.toLowerCase()).map(function (c) {
+            return c !== '\u00f1' && c >= '\u00c0' && c <= '\u024f' ? c.normalize('NFKD').replace(/[\u0300-\u036f]/g, '') : c;
+        }).join('').normalize('NFC').replace(/\u0451/g, '\u0435').replace(/\u00df/g, 'ss');
+    }
+    W.whole.forEach(function (w) { WHOLE[foldOther(w)] = true; });
+    PARTS = W.parts.map(foldOther);
+    PHRASES = W.phrases.map(foldOther);
+    function otherLanguage(text) {
+        var t = foldOther(text), asI = '', asL = '';
+        Array.from(t).forEach(function (c) { asI += LEET[c] || c; asL += c === '1' || c === '!' || c === '|' ? 'l' : (LEET[c] || c); });
+        return [t, asI, asL].some(function (v) {
+            var words = v.split(/\s+/).filter(Boolean);
+            if (words.some(function (w) { return WHOLE[w] || PARTS.some(function (p) { return w.indexOf(p) >= 0; }); })) return true;
+            var padded = ' ' + words.join(' ') + ' ';
+            return PHRASES.some(function (p) { return padded.indexOf(' ' + p + ' ') >= 0; });
+        });
+    }
+
     function make(allowedNames) {
         var matcher = new O.RegExpMatcher(Object.assign({}, O.englishDataset.build(), O.englishRecommendedTransformers));
         // A few entries in obscenity's list do not match their own word as typed; add each such
@@ -122,7 +154,7 @@ var VerbaNameCheck = (function (O) {
         function allowed(name) {
             var s = String(name || '').normalize('NFKC').replace(/\p{Cf}/gu, '');
             if (GESTURE.test(s)) return false;
-            return !readings(s).some(function (t) { return t && matcher.hasMatch(t); });
+            return !readings(s).some(function (t) { return t && (matcher.hasMatch(t) || otherLanguage(t)); });
         }
         return { allowed: allowed, matcher: matcher };
     }
@@ -131,7 +163,8 @@ var VerbaNameCheck = (function (O) {
     api.make = make;
     api.allowedNames = function () { return ALLOWED.slice(); };
     return api;
-}(typeof Obscenity !== 'undefined' ? Obscenity : require('./vendor/obscenity/obscenity.min.js')));
+}(typeof Obscenity !== 'undefined' ? Obscenity : require('./vendor/obscenity/obscenity.min.js'),
+  typeof VerbaWordLists !== 'undefined' ? VerbaWordLists : require('./vendor/wordlists/wordlists.js')));
 
 if (typeof window !== 'undefined') window.VerbaNameCheck = VerbaNameCheck;
 if (typeof module !== 'undefined' && module.exports) module.exports = VerbaNameCheck;
