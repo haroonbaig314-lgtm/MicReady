@@ -108,7 +108,8 @@
             main { padding: 2rem 16px 3rem; }
         }
     </style>
-    <link rel="stylesheet" href="dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="dark.css" id="darkCss" media="not all">
+    <script>try{if(localStorage.getItem('verba_theme')==='dark'){document.getElementById('darkCss').media='all';document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body class="legal">
 <a class="skip-link" href="#main">Skip to main content</a>
@@ -141,7 +142,7 @@
     <h3>2.3 Verba MVP</h3>
     <p>The "Try the MVP" links open a separate application hosted on Glide (glideapps.com). If you use the MVP, the information you enter and the recordings you submit are stored by Glide and are sent to OpenAI for transcription (Whisper) and analysis (GPT) in order to produce your feedback. Glide's and OpenAI's handling of that data is governed by their respective privacy policies and data processing terms. Do not submit recordings that contain sensitive personal information about yourself or others.</p>
     <h3>2.4 Information stored on your device</h3>
-    <p>The Site stores a few values in your browser's local storage: <code>verba_disclaimer_seen</code>, which records that you have read the demo notice, and <code>verba_consent</code>, which records your cookie choice. If you turn on progress tracking, it also stores <code>verba_history_opt</code> (your choice) and <code>verba_history</code>, a list of your past sessions containing only numbers: date, length, pace, filler and hedge counts, pauses and score. Your words and audio are never stored. To make the Site work offline, your browser may also keep a copy of the Site's own files in its cache storage. None of this identifies you or is sent to us, and you can delete your history from the "Your progress" panel or by clearing site data. Details are in the <a href="cookies.html">Cookie Policy</a>.</p>
+    <p>The Site stores a few values in your browser's local storage: <code>verba_disclaimer_seen</code>, which records that you have read the demo notice; <code>verba_consent</code>, which records your cookie choice; and <code>verba_theme</code>, which remembers whether you chose dark mode. If you turn on progress tracking, it also stores <code>verba_history_opt</code> (your choice) and <code>verba_history</code>, a list of your past sessions containing only numbers: date, length, pace, filler and hedge counts, pauses and score. Your words and audio are never stored. To make the Site work offline, your browser may also keep a copy of the Site's own files in its cache storage. None of this identifies you or is sent to us, and you can delete your history from the "Your progress" panel or by clearing site data. Details are in the <a href="cookies.html">Cookie Policy</a>.</p>
     <h3>2.4a Results images</h3>
     <p>The "Share your result" buttons draw an image of your score, pace, filler rate and pause count in your browser. The image is saved to your device or passed to your device's share menu; Verba never receives it. It contains no words from your session.</p>
     <h3>2.5 Hosting logs</h3>

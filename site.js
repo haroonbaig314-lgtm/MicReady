@@ -98,6 +98,53 @@
         else if (prev === 'accepted') unloadEmbeds();
     }
 
+    // ── Light / dark theme ──
+    // The site opens light. The header button switches to dark and remembers it.
+    var THEME_KEY = 'verba_theme';
+    var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
+    var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>';
+    var themeBtn = null;
+
+    function isDark() {
+        var link = document.getElementById('darkCss');
+        return !!link && link.media === 'all';
+    }
+    function renderThemeButton() {
+        if (!themeBtn) return;
+        var dark = isDark();
+        themeBtn.innerHTML = dark ? SUN : MOON;
+        themeBtn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+        themeBtn.title = dark ? 'Switch to light mode' : 'Switch to dark mode';
+    }
+    function setTheme(theme) {
+        var link = document.getElementById('darkCss');
+        if (link) link.media = theme === 'dark' ? 'all' : 'not all';
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
+        renderThemeButton();
+        document.dispatchEvent(new CustomEvent('verba:theme', { detail: { theme: theme } }));
+    }
+    function addThemeButton() {
+        var nav = document.querySelector('header nav');
+        if (!nav || !document.getElementById('darkCss')) return;
+        themeBtn = document.createElement('button');
+        themeBtn.type = 'button';
+        themeBtn.className = 'theme-toggle';
+        themeBtn.setAttribute('aria-label', 'Dark mode');
+        themeBtn.addEventListener('click', function () { setTheme(isDark() ? 'light' : 'dark'); });
+        var holder = nav.querySelector('.nav-links');
+        if (!holder) {
+            // Legal pages: keep the "Back to home" link and the button together on the right.
+            holder = document.createElement('div');
+            holder.className = 'nav-actions';
+            var lastLink = nav.lastElementChild;
+            if (lastLink && lastLink.tagName === 'A' && !lastLink.classList.contains('logo')) holder.appendChild(lastLink);
+            nav.appendChild(holder);
+        }
+        holder.appendChild(themeBtn);
+        renderThemeButton();
+    }
+
     window.VerbaConsent = {
         get: getChoice,
         set: setChoice,
@@ -105,6 +152,7 @@
     };
 
     function init() {
+        addThemeButton();
         document.addEventListener('click', function (e) {
             if (e.target.closest('[data-open-consent]')) { e.preventDefault(); showBanner(true); }
             var allow = e.target.closest('[data-allow-embed]');

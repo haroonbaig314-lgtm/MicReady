@@ -8,7 +8,11 @@ const summarize = violations => violations.map(v => `${v.id}: ${v.nodes.map(n =>
 
 for (const scheme of ['light', 'dark']) {
     test.describe(`${scheme} mode`, () => {
-        test.use({ colorScheme: scheme, reducedMotion: 'reduce' });
+        test.use({ reducedMotion: 'reduce' });
+        // Dark mode is the visitor's choice (header button), so set it before each page loads.
+        test.beforeEach(async ({ page }) => {
+            if (scheme === 'dark') await page.addInitScript(() => localStorage.setItem('verba_theme', 'dark'));
+        });
 
         for (const name of PAGES) {
             test(`${name} has no WCAG violations`, async ({ page }) => {

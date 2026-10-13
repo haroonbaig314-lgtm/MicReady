@@ -830,7 +830,8 @@
             #page-sweep.cover  { animation-duration: 0.25s; }
         }
     </style>
-    <link rel="stylesheet" href="dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="dark.css" id="darkCss" media="not all">
+    <script>try{if(localStorage.getItem('verba_theme')==='dark'){document.getElementById('darkCss').media='all';document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body>
 

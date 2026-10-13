@@ -65,8 +65,6 @@
     var lastActivityTime = 0;
     var watchdogInterval = null;
     var isRestarting = false;
-    var customWord = '';        // normalized lowercase custom word active in current session
-    var customWordLabel = '';   // display label (uppercased) for the counter tile
     var buzzerAC = null;
     var pendingSoundHits = [];  // times of sound-based detections not yet matched to transcript words
     var hedgeCounts = {};
@@ -94,7 +92,7 @@
             var card = document.createElement('div');
             card.className = 'filler-counter-card';
             card.id = 'card-' + id;
-            var label = (customWord && filler === customWord) ? customWordLabel : (cfg.labels[i] || filler.toUpperCase());
+            var label = cfg.labels[i] || filler.toUpperCase();
             card.innerHTML =
                 '<div class="filler-counter-number" id="count-' + id + '">0</div>' +
                 '<div class="filler-counter-label">' + label + '</div>';
@@ -687,23 +685,6 @@
         if (langSelectEl) langSelectEl.disabled = false;
     }
 
-    function lockCustomWordInput() {
-        var w = document.getElementById('customWordWrap');
-        var inp = document.getElementById('customWordInput');
-        var btn = document.getElementById('customWordAddBtn');
-        if (w) w.classList.add('locked');
-        if (inp) inp.disabled = true;
-        if (btn) btn.disabled = true;
-    }
-    function unlockCustomWordInput() {
-        var w = document.getElementById('customWordWrap');
-        var inp = document.getElementById('customWordInput');
-        var btn = document.getElementById('customWordAddBtn');
-        if (w) w.classList.remove('locked');
-        if (inp) inp.disabled = false;
-        if (btn) { btn.disabled = false; btn.textContent = 'Add'; btn.style.background = ''; btn.style.color = ''; }
-    }
-
     // ── Recording control ──
     var MIC_SVG_OFF = '<svg class="mic-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
         '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>' +
@@ -745,21 +726,7 @@
         document.getElementById('demoCard').classList.add('recording');
         lockLangSelector();
 
-        // Read custom word input and add to filler list for this session
-        var cwInput = document.getElementById('customWordInput');
-        customWord = cwInput ? cwInput.value.trim().toLowerCase() : '';
-        customWordLabel = customWord ? customWord.toUpperCase() : '';
-        // A custom "um" is already covered by the hesitation counter.
-        if (customWord && LANG_CONFIG[currentLang].hes.indexOf(customWord) !== -1) {
-            customWord = '';
-            customWordLabel = '';
-        }
-        if (customWord) {
-            FILLERS.push(customWord);
-            fillerCounts[customWord] = 0;
-        }
         buildCounterCards();
-        lockCustomWordInput();
 
         showDots();
 
@@ -822,9 +789,6 @@
         setStatusDot('');
         sessionDuration = 0;
         accumulatedTranscript = '';
-        // Restore base fillers (drops custom word from previous session)
-        customWord = '';
-        customWordLabel = '';
         FILLERS = LANG_CONFIG[currentLang].fillers.slice();
         resetCounts();
 
@@ -842,7 +806,6 @@
         btn.setAttribute('aria-label', 'Start recording');
 
         unlockLangSelector();
-        unlockCustomWordInput();
         lockPractice(false);
         hideDots();
         renderTranscript('', '');
@@ -991,26 +954,7 @@
             var li = document.createElement('li');
             var label = document.createElement('span');
             label.textContent = '\u201c' + r.word + '\u201d ' + r.count + ' times';
-            var btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'track-word-btn';
-            btn.textContent = 'Track it next time';
-            btn.setAttribute('aria-label', 'Track the word ' + r.word + ' in your next session');
-            btn.addEventListener('click', function () {
-                closeModal();
-                var input = document.getElementById('customWordInput');
-                if (input) {
-                    input.value = r.word;
-                    input.classList.add('just-set');
-                    setTimeout(function () { input.classList.remove('just-set'); }, 1600);
-                }
-                var card = document.getElementById('demoCard');
-                if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                var mic = document.getElementById('micButton');
-                if (mic) mic.focus({ preventScroll: true });
-            });
             li.appendChild(label);
-            li.appendChild(btn);
             list.appendChild(li);
         });
     }
@@ -1082,17 +1026,10 @@
             }
         }
 
-        // Append custom word count if it was tracked and detected but wasn't already the top filler
-        var customNote = '';
-        if (customWord && fillerCounts[customWord] > 0 && topFiller !== customWord) {
-            var cCount = fillerCounts[customWord];
-            customNote = ' Your tracked word \u201c' + customWord + '\u201d came up ' + cCount + ' time' + (cCount !== 1 ? 's' : '') + '.';
-        }
-
         if (fillerNote && paceNote) {
-            return fillerNote + ' ' + paceNote + customNote;
+            return fillerNote + ' ' + paceNote;
         }
-        return (fillerNote || paceNote) + customNote;
+        return fillerNote || paceNote;
     }
 
     // ── Event listeners ──
@@ -1120,22 +1057,6 @@
     });
 
     document.getElementById('endSessionBtn').addEventListener('click', endSession);
-
-    var addWordBtn = document.getElementById('customWordAddBtn');
-    if (addWordBtn) {
-        addWordBtn.addEventListener('click', function () {
-            var inp = document.getElementById('customWordInput');
-            if (!inp || !inp.value.trim()) return;
-            addWordBtn.textContent = '\u2713 Added';
-            addWordBtn.style.background = '#2d5a44';
-            addWordBtn.style.color = '#fff';
-            setTimeout(function () {
-                addWordBtn.textContent = 'Add';
-                addWordBtn.style.background = '';
-                addWordBtn.style.color = '';
-            }, 1500);
-        });
-    }
 
     var modalReturnFocus = null;
     function closeModal() {
