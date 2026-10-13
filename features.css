@@ -436,3 +436,4 @@
     .how-num { grid-row: span 2; margin: 0; }
     .how-step h3 { align-self: center; margin-bottom: 0.2rem; }
 }
+.profile-form input[aria-invalid="true"] { border-color: var(--vf-danger); box-shadow: 0 0 0 1px var(--vf-danger); }

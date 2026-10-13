@@ -213,7 +213,7 @@
             <form class="profile-form" id="profileForm" hidden>
                 <label class="lang-selector-label" for="profileName" id="profileFormLabel">Name</label>
                 <div class="profile-form-row">
-                    <input type="text" id="profileName" maxlength="30" autocomplete="off" required>
+                    <input type="text" id="profileName" maxlength="30" autocomplete="off" required aria-describedby="profileStatus">
                     <button type="submit" class="progress-btn">Save</button>
                     <button type="button" class="progress-btn secondary" id="profileCancel">Cancel</button>
                 </div>
@@ -398,6 +398,9 @@
 <script src="hesitation.js" defer></script>
 <script src="site.js" defer></script>
 <script src="demo.js" defer></script>
+<script src="vendor/obscenity/obscenity.min.js" defer></script>
+<script src="vendor/wordlists/wordlists.js" defer></script>
+<script src="namecheck.js" defer></script>
 <script src="profiles.js" defer></script>
 <script src="features.js" defer></script>
 <script src="voiceid.js" defer></script>
