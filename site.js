@@ -117,4 +117,11 @@
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
     else init();
+
+    // Offline support and "add to home screen" (sw.js). HTTPS or localhost only.
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname))) {
+        window.addEventListener('load', function () {
+            navigator.serviceWorker.register('sw.js').catch(function () {});
+        });
+    }
 }());

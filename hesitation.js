@@ -29,7 +29,11 @@ var VerbaHesitationDetector = (function () {
         minStableFraction: 0.75,// share of frames that must have a steady spectrum
         glitchFrames: 5,        // consecutive bad frames tolerated inside one sound
         minF0: 70,
-        maxF0: 420
+        maxF0: 420,
+        // Pauses: silence between two stretches of speech.
+        pauseSpeechDb: 14,      // dB above the noise floor that counts as speaking
+        pauseSilenceDb: 8,      // dB above the noise floor below which it is silent
+        minPause: 0.5           // seconds of silence reported as a pause
     };
 
     function nextPow2(n) { var p = 1; while (p < n) p <<= 1; return p; }
@@ -110,6 +114,9 @@ var VerbaHesitationDetector = (function () {
         this.time = 0;          // seconds of audio processed
         this.resetRun();
         this.onDetect = null;
+        this.onPause = null;    // called with the pause length in seconds when speech resumes
+        this.heardSpeech = false;
+        this.silentFrames = 0;
     }
 
     Detector.prototype.resetRun = function () {
@@ -208,7 +215,27 @@ var VerbaHesitationDetector = (function () {
         hist.push(bands);
         if (hist.length > this.histMax - 1) hist.shift();
 
-        this.decide({ t: this.time, db: db, noiseDb: this.noiseDb, ap: bestVal, f0: f0, specChange: specChange });
+        var frame = { t: this.time, db: db, noiseDb: this.noiseDb, ap: bestVal, f0: f0, specChange: specChange };
+        this.trackPause(frame);
+        this.decide(frame);
+    };
+
+    // Report each silence between two stretches of speech once speech resumes.
+    Detector.prototype.trackPause = function (fr) {
+        var o = this.opts;
+        var above = fr.db - fr.noiseDb;
+        if (above >= o.pauseSpeechDb && fr.db > -70) {
+            var secs = this.silentFrames * this.hop / this.fs;
+            if (this.heardSpeech && secs >= o.minPause && this.onPause) this.onPause(secs, fr.t);
+            this.heardSpeech = true;
+            this.silentFrames = 0;
+        } else if (above < o.pauseSilenceDb) {
+            if (this.heardSpeech) this.silentFrames++;
+        }
+        // In between the two thresholds: neither clearly speech nor clearly silent; keep counting.
+        else if (this.heardSpeech && this.silentFrames > 0) {
+            this.silentFrames++;
+        }
     };
 
     // Decide, frame by frame, whether a held hesitation sound is in progress.
@@ -259,6 +286,7 @@ if (typeof registerProcessor === 'function') {
             var port = this.port;
             this.detector = new VerbaHesitationDetector(sampleRate);
             this.detector.onDetect = function (t) { port.postMessage({ type: 'hesitation', t: t }); };
+            this.detector.onPause = function (d) { port.postMessage({ type: 'pause', d: d }); };
         }
         process(inputs) {
             var input = inputs[0];

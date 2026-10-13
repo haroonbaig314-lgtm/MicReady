@@ -1,0 +1,13 @@
+{
+  "name": "verba-site",
+  "private": true,
+  "description": "Automated checks for the Verba website. The site itself is static and needs no build.",
+  "scripts": {
+    "test": "playwright test",
+    "serve": "node tests/serve.js"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.63.0"
+  }
+}

@@ -5,7 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cookie Policy | Verba</title>
     <meta name="description" content="The cookies, local storage, and third-party content used on the Verba website.">
+    <link rel="canonical" href="https://haroonbaig314-lgtm.github.io/Verba/cookies.html">
+    <meta property="og:title" content="Cookie Policy | Verba">
+    <meta property="og:description" content="The cookies, local storage, and third-party content used on the Verba website.">
+    <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/Verba/cookies.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.jpg">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="theme-color" content="#1e3a2e">
     <link rel="stylesheet" href="fonts/fonts.css">
     <link rel="stylesheet" href="site.css">
     <style>
@@ -98,8 +108,9 @@
             main { padding: 2rem 16px 3rem; }
         }
     </style>
+    <link rel="stylesheet" href="dark.css" media="(prefers-color-scheme: dark)">
 </head>
-<body>
+<body class="legal">
 <a class="skip-link" href="#main">Skip to main content</a>
 <header class="legal-header">
     <nav aria-label="Primary">
@@ -124,6 +135,9 @@
         <tbody>
             <tr><td><code>verba_consent</code></td><td>Local storage</td><td>Remembers whether you accepted or rejected optional third-party content</td><td>Until you clear site data</td><td>Strictly necessary</td></tr>
             <tr><td><code>verba_disclaimer_seen</code></td><td>Local storage</td><td>Remembers that you have read the browser demo notice, so it is not shown each time</td><td>Until you clear site data</td><td>Functional, set only when you start the demo</td></tr>
+            <tr><td><code>verba_history_opt</code></td><td>Local storage</td><td>Remembers whether you turned progress tracking on or off</td><td>Until you clear site data</td><td>Functional, set only when you choose</td></tr>
+            <tr><td><code>verba_history</code></td><td>Local storage</td><td>Your saved practice sessions (numbers only: date, length, pace, filler and hedge counts, pauses, score), shown in the "Your progress" panel</td><td>Until you delete it from the panel or clear site data</td><td>Functional, only if you turn on progress tracking</td></tr>
+            <tr><td><code>verba-*</code> cache</td><td>Cache storage (service worker)</td><td>A copy of the Site's own pages, styles and scripts so it can open offline and load faster</td><td>Replaced when the Site updates; removed when you clear site data</td><td>Functional</td></tr>
         </tbody>
     </table></div>
     <p>These values stay on your device. Verba never reads them from a server, and they do not identify you.</p>
