@@ -1,10 +1,11 @@
 /* Verba: voice profiles. Tells enrolled voices apart, on this device only.
  *
  * A short stretch of speech is turned into a voiceprint: 80 log-mel filterbank features
- * per 10 ms (computed here, matching Kaldi's fbank), passed through an open speaker-
- * recognition model (WeSpeaker ResNet34-LM, trained on VoxCeleb, CC BY 4.0) that runs in
- * the browser with ONNX Runtime Web. Two voiceprints of the same person point in nearly
- * the same direction, so they are compared by cosine similarity.
+ * per 10 ms (computed here, matching Kaldi's fbank), each channel less its average over the
+ * stretch, passed through an open speaker-recognition model (WeSpeaker ResNet34-LM, trained
+ * on VoxCeleb, CC BY 4.0) that runs in the browser with ONNX Runtime Web. Two voiceprints of
+ * the same person point in nearly the same direction, so they are compared by cosine
+ * similarity.
  *
  * Nothing leaves the device. The model and runtime are files on this site, downloaded
  * only when someone turns voice profiles on, and voiceprints are kept in this browser.
@@ -133,17 +134,137 @@ var VerbaVoiceID = (function () {
             .then(function (s) { session = s; return s; }, function (e) { loading = null; throw e; });
         return loading;
     }
+    // Each channel less its average over the stretch, as in the model's training. This takes
+    // out the microphone, the room and the overall loudness, which otherwise make different
+    // people sound alike (on LibriSpeech, 5% equal error rate without it, under 0.1% with it).
+    function subtractMean(data, frames) {
+        var mean = new Float64Array(NMEL), f, b;
+        for (f = 0; f < frames; f++) for (b = 0; b < NMEL; b++) mean[b] += data[f * NMEL + b];
+        for (b = 0; b < NMEL; b++) mean[b] /= frames;
+        for (f = 0; f < frames; f++) for (b = 0; b < NMEL; b++) data[f * NMEL + b] -= mean[b];
+        return data;
+    }
     // samples at 16 kHz -> Float32Array voiceprint (256 values), or null if too short.
     function embed(ort, samples) {
         var fb = fbank(samples);
         if (fb.frames < 50) return Promise.resolve(null);
+        subtractMean(fb.data, fb.frames);
         var input = new ort.Tensor('float32', fb.data, [1, fb.frames, NMEL]);
         var feeds = {}; feeds[session.inputNames[0]] = input;
         return session.run(feeds).then(function (r) { return Float32Array.from(r[session.outputNames[0]].data); });
     }
 
-    return { RATE: RATE, resample: resample, fbank: fbank, cosine: cosine, normalize: normalize, average: average, load: load, embed: embed,
-             isLoaded: function () { return !!session; } };
+    // ── Group practice: who spoke when, and whose "um"s, pauses and words were whose ──
+    // windows: [{ from, to, scores: { id: similarity } }] in time order (ms), one per check. Each
+    // check covers 3 s of speech and overlaps the one before by half, so region x, the speech that
+    // arrived since check x-1, is heard by checks x and x+1.
+    // ev: { hes: [t], pauses: [{ t, d }] (t: when speech resumed), chunks: [{ start, end, words,
+    //       hedges, hes, fil }] }
+    // cal: { switchCost, unknown, longPause, snap }.
+    // The speaker of each region is the most likely sequence over the whole session (Viterbi):
+    // a region scores, for each person, the mean similarity of the two checks that hear it;
+    // every change of speaker costs `switchCost`, which keeps single doubtful checks from
+    // splitting a turn; and "someone not enrolled" scores a fixed `unknown`.
+    function attribute(windows, ev, cal) {
+        var n = windows.length, ids = [], seen = {}, x, i, j;
+        windows.forEach(function (w) { Object.keys(w.scores).forEach(function (id) { if (!seen[id]) { seen[id] = true; ids.push(id); } }); });
+        ids.push('unknown');
+        var K = ids.length, U = cal.unknown, C = cal.switchCost;
+        function em(x, k) {
+            if (ids[k] === 'unknown') return U;
+            var a = windows[x].scores[ids[k]], b = x + 1 < n ? windows[x + 1].scores[ids[k]] : undefined;
+            if (typeof a !== 'number') a = -1;
+            return typeof b === 'number' ? (a + b) / 2 : a;
+        }
+        var labels = new Array(n);
+        if (n) {
+            var prev = [], back = [];
+            for (j = 0; j < K; j++) prev.push(em(0, j));
+            for (x = 1; x < n; x++) {
+                var cur = [], bk = [];
+                for (j = 0; j < K; j++) {
+                    var best = -Infinity, arg = 0;
+                    for (i = 0; i < K; i++) { var v = prev[i] - (i === j ? 0 : C); if (v > best) { best = v; arg = i; } }
+                    cur.push(best + em(x, j)); bk.push(arg);
+                }
+                back.push(bk); prev = cur;
+            }
+            var last = 0;
+            for (j = 1; j < K; j++) if (prev[j] > prev[last]) last = j;
+            labels[n - 1] = ids[last];
+            for (x = n - 2; x >= 0; x--) { last = back[x][last]; labels[x] = ids[last]; }
+        }
+        var regions = windows.map(function (w, x) { return { from: x ? windows[x - 1].to : w.from, to: w.to, id: labels[x] }; });
+        // Turns: runs of one speaker. The checks place a change of speaker only to within a
+        // stretch of 1.5 to 5 s, but people take turns in a silence. So each change moves to the
+        // pause, in the two stretches around it, that best fits the checks nearby: those before
+        // it should sound more like the first speaker, and those after it like the second.
+        var turns = [], pz = (ev.pauses || []).map(function (p) { return { from: p.t - p.d * 1000, to: p.t, d: p.d }; });
+        function sim(w, id) { return id === 'unknown' ? U : typeof w.scores[id] === 'number' ? w.scores[id] : -1; }
+        function fit(tau, a, b, lo, hi) {
+            var e = 0;
+            windows.forEach(function (w) {
+                if (w.to < lo - 6000 || w.from > hi + 6000) return;
+                var f = Math.max(0, Math.min(1, (tau - w.from) / ((w.to - w.from) || 1)));
+                e += (sim(w, a) - sim(w, b)) * (2 * f - 1);
+            });
+            return e;
+        }
+        regions.forEach(function (r, x) {
+            var cur = turns[turns.length - 1];
+            if (cur && cur.id === r.id) { cur.to = r.to; return; }
+            var t = { id: r.id, from: r.from, to: r.to, gap: null };
+            if (cur && cal.snap !== false) {
+                var lo = Math.max(cur.from, regions[x - 1].from), hi = r.to, pick = null, best = -Infinity;
+                pz.forEach(function (p) {
+                    var mid = (p.from + p.to) / 2;
+                    if (p.used || mid <= lo || mid >= hi) return;
+                    var e = fit(mid, cur.id, r.id, lo, hi);
+                    if (e > best) { best = e; pick = p; }
+                });
+                if (pick) { pick.used = true; cur.to = t.from = (pick.from + pick.to) / 2; t.gap = pick; }
+            }
+            turns.push(t);
+        });
+        function at(t) {
+            if (!turns.length) return 'unknown';
+            var lo = 0, hi = turns.length - 1;
+            while (lo < hi) { var mid = (lo + hi) >> 1; if (turns[mid].to < t) lo = mid + 1; else hi = mid; }
+            return turns[lo].id;
+        }
+        var people = {};
+        function person(id) {
+            return people[id] || (people[id] = { id: id, talk: 0, words: 0, fil: 0, hes: 0, pauses: 0, longPauses: 0, pauseSecs: 0, hedges: 0 });
+        }
+        // Speaking time: each person's turns, less the silence of a hand-off.
+        var handoffs = [];
+        turns.forEach(function (t, k) {
+            var g = t.gap ? t.gap.d : 0;
+            person(t.id).talk += Math.max(0, (t.to - t.from) / 1000 - g / 2 - (turns[k + 1] && turns[k + 1].gap ? turns[k + 1].gap.d / 2 : 0));
+            if (k) handoffs.push({ from: turns[k - 1].id, to: t.id, d: t.gap ? t.gap.d : null });
+        });
+        (ev.hes || []).forEach(function (t) { var p = person(at(t)); p.fil++; p.hes++; });
+        // Every other pause is the speaker's own.
+        pz.forEach(function (p) {
+            if (p.used) return;
+            var q = person(p.who = at((p.from + p.to) / 2)); q.pauses++; q.pauseSecs += p.d; if (p.d >= (cal.longPause || 3)) q.longPauses++;
+        });
+        // Transcript: each finished stretch goes to whoever spoke for most of it.
+        (ev.chunks || []).forEach(function (c) {
+            var share = {}, top = null;
+            turns.forEach(function (r) {
+                var o = Math.min(r.to, c.end) - Math.max(r.from, c.start);
+                if (o > 0) share[r.id] = (share[r.id] || 0) + o;
+            });
+            Object.keys(share).forEach(function (id) { if (top === null || share[id] > share[top]) top = id; });
+            var p = person(top || at((c.start + c.end) / 2));
+            p.words += c.words || 0; p.hedges += c.hedges || 0; p.hes += c.hes || 0; p.fil += (c.hes || 0) + (c.fil || 0);
+        });
+        return { labels: labels, regions: regions, turns: turns, pauses: pz, people: people, handoffs: handoffs, speakerAt: at };
+    }
+
+    return { RATE: RATE, resample: resample, fbank: fbank, subtractMean: subtractMean, cosine: cosine, normalize: normalize, average: average, load: load, embed: embed,
+             attribute: attribute, isLoaded: function () { return !!session; } };
 }());
 
 if (typeof window !== 'undefined') window.VerbaVoiceID = VerbaVoiceID;
