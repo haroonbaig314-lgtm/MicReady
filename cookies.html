@@ -124,6 +124,9 @@
         <tbody>
             <tr><td><code>verba_consent</code></td><td>Local storage</td><td>Remembers whether you accepted or rejected optional third-party content</td><td>Until you clear site data</td><td>Strictly necessary</td></tr>
             <tr><td><code>verba_disclaimer_seen</code></td><td>Local storage</td><td>Remembers that you have read the browser demo notice, so it is not shown each time</td><td>Until you clear site data</td><td>Functional, set only when you start the demo</td></tr>
+            <tr><td><code>verba_history_opt</code></td><td>Local storage</td><td>Remembers whether you turned progress tracking on or off</td><td>Until you clear site data</td><td>Functional, set only when you choose</td></tr>
+            <tr><td><code>verba_history</code></td><td>Local storage</td><td>Your saved practice sessions (numbers only: date, length, pace, filler and hedge counts, pauses, score), shown in the "Your progress" panel</td><td>Until you delete it from the panel or clear site data</td><td>Functional, only if you turn on progress tracking</td></tr>
+            <tr><td><code>verba-*</code> cache</td><td>Cache storage (service worker)</td><td>A copy of the Site's own pages, styles and scripts so it can open offline and load faster</td><td>Replaced when the Site updates; removed when you clear site data</td><td>Functional</td></tr>
         </tbody>
     </table></div>
     <p>These values stay on your device. Verba never reads them from a server, and they do not identify you.</p>

@@ -9,7 +9,11 @@
     // them, matched against those sound detections so nothing is counted twice.
     var LANG_CONFIG = {
         'en-US': { fillers: ['like'], labels: ['LIKE'],
-                   hes: ['um', 'umm', 'uhm', 'uh', 'uhh', 'er', 'erm'], hesLabel: 'UM / UH' },
+                   hes: ['um', 'umm', 'uhm', 'uh', 'uhh', 'er', 'erm'], hesLabel: 'UM / UH',
+                   // Phrases that soften a point. Counted separately from fillers, never in the score.
+                   hedges: ['i think', 'i guess', 'kind of', 'sort of', 'maybe', 'just', 'i feel like', 'probably', 'a little bit', 'perhaps'],
+                   // "like" inside these phrases is a real word, not a filler.
+                   fillerExclusions: { like: ['feel like', 'feels like', 'felt like', 'look like', 'looks like', 'looked like', 'would like', "i'd like"] } },
         'es-ES': { fillers: ['este', 'bueno', 'o sea', 'pues'], labels: ['ESTE', 'BUENO', 'O SEA', 'PUES'],
                    hes: ['eh', 'ehh', 'em', 'mmm'], hesLabel: 'EH / EM' },
         'fr-FR': { fillers: ['bah', 'genre', 'voila'], labels: ['BAH', 'GENRE', 'VOILA'],
@@ -49,7 +53,11 @@
         fillerCounts[HES] = 0;
         FILLERS.forEach(function (f) { fillerCounts[f] = 0; });
         pendingSoundHits = [];
+        hedgeCounts = {};
+        pauseCount = 0; longPauseCount = 0; pauseSeconds = 0;
     }
+    function hedgeList() { return LANG_CONFIG[currentLang].hedges || []; }
+    function totalHedges() { return hedgeList().reduce(function (s, h) { return s + (hedgeCounts[h] || 0); }, 0); }
     function counterKeys() { return [HES].concat(FILLERS); }
     resetCounts();
     var dotsEl = document.getElementById('typingDots');
@@ -61,6 +69,11 @@
     var customWordLabel = '';   // display label (uppercased) for the counter tile
     var buzzerAC = null;
     var pendingSoundHits = [];  // times of sound-based detections not yet matched to transcript words
+    var hedgeCounts = {};
+    var pauseCount = 0, longPauseCount = 0, pauseSeconds = 0;
+    var resumedAt = 0;          // when listening last (re)started, so pauses never span a manual pause
+    var LONG_PAUSE = 3;         // seconds
+    var practiceMode = 'free';
 
     // ── Build filler counter cards ──
     var counterContainer = document.getElementById('fillerCounters');
@@ -87,6 +100,17 @@
                 '<div class="filler-counter-label">' + label + '</div>';
             counterContainer.appendChild(card);
         });
+        if (hedgeList().length) {
+            var hedgeCard = document.createElement('div');
+            hedgeCard.className = 'filler-counter-card hedge-card';
+            hedgeCard.id = 'card-fc-hedge';
+            hedgeCard.title = 'Phrases that soften your point, such as "I think" or "kind of"';
+            hedgeCard.innerHTML =
+                '<div class="filler-counter-number" id="count-fc-hedge">0</div>' +
+                '<div class="filler-counter-label">HEDGES</div>' +
+                '<div class="filler-counter-est">not in score</div>';
+            counterContainer.appendChild(hedgeCard);
+        }
     }
     buildCounterCards();
 
@@ -133,6 +157,7 @@
 
             var fullText = accumulatedTranscript + interim;
             var newCounts = countFillers(fullText);
+            hedgeCounts = countHedges(fullText);
 
             var detected = false;
             var incremented = [];
@@ -173,6 +198,129 @@
                 }
             }, 300);
         };
+    }
+
+    // ── Pauses (from the microphone analysis) ──
+    document.addEventListener('verba:pause', function (e) {
+        if (!isRecording || !e.detail) return;
+        var d = e.detail.duration;
+        // Ignore silence that started before listening resumed (a manual pause).
+        if (d > (Date.now() - resumedAt) / 1000 - 0.2) return;
+        pauseCount++;
+        pauseSeconds += d;
+        if (d >= LONG_PAUSE) longPauseCount++;
+        renderCounters();
+    });
+
+    // ── Practice modes and topics ──
+    var MODES = {
+        free:         { secs: 0,   label: 'Free practice' },
+        pitch:        { secs: 60,  label: '60-second pitch' },
+        interview:    { secs: 120, label: 'Interview answer' },
+        presentation: { secs: 180, label: 'Class presentation' },
+        impromptu:    { secs: 60,  label: 'Impromptu talk' }
+    };
+    var PROMPTS = {
+        pitch: [
+            'Pitch a product that would make your mornings easier.',
+            'Pitch yourself for an internship you would love to land.',
+            'Pitch a club or group you would start on campus.',
+            'Pitch a small business idea to a friend who might invest.',
+            'Pitch a change that would improve your school or workplace.',
+            'Pitch an app that solves a problem you had this week.',
+            'Pitch a weekend trip to friends who are not convinced.',
+            'Pitch a book, show, or podcast to someone who has never heard of it.',
+            'Pitch a volunteer project to your local community.',
+            'Pitch a better way to study for exams.'
+        ],
+        interview: [
+            'Tell me about yourself.',
+            'Why do you want this role?',
+            'Describe a time you worked through a conflict on a team.',
+            'Tell me about a mistake you made and what you learned from it.',
+            'What is your greatest strength, and how have you used it?',
+            'Describe a project you are proud of and your part in it.',
+            'Tell me about a time you had to learn something quickly.',
+            'Where do you see yourself in five years?',
+            'Describe a time you showed leadership without having the title.',
+            'Why should we hire you over other candidates?'
+        ],
+        presentation: [
+            'Explain a scientific idea you find fascinating to a class of first-year students.',
+            'Present the causes and effects of a historical event you know well.',
+            'Summarize a book or article you read recently and why it matters.',
+            'Present a solution to a problem in your city or town.',
+            'Explain how a technology you use every day actually works.',
+            'Make the case for or against a four-day school or work week.',
+            'Present the results of a project, real or imagined, to your class.',
+            'Teach the class a skill you are good at, step by step.',
+            'Compare two approaches to the same problem and recommend one.',
+            'Explain an economic idea, such as inflation, using everyday examples.'
+        ],
+        impromptu: [
+            'What is the best piece of advice you have ever received?',
+            'Describe your ideal day from start to finish.',
+            'If you could master one skill overnight, what would it be?',
+            'What is something most people misunderstand about you?',
+            'Describe a place that feels like home to you.',
+            'What would you change about how schools work?',
+            'Talk about a small habit that made a big difference for you.',
+            'What is a hobby you would recommend to everyone, and why?',
+            'Describe a person who changed the way you think.',
+            'What does a good weekend look like to you?'
+        ]
+    };
+    var currentPrompt = '';
+    function pickPrompt() {
+        var cat = practiceMode === 'free'
+            ? ['pitch', 'interview', 'presentation', 'impromptu'][Math.floor(Math.random() * 4)]
+            : practiceMode;
+        var list = PROMPTS[cat], next = currentPrompt;
+        for (var tries = 0; next === currentPrompt && tries < 10; tries++) {
+            next = list[Math.floor(Math.random() * list.length)];
+        }
+        currentPrompt = next;
+        var el = document.getElementById('practicePrompt');
+        if (el) { el.textContent = currentPrompt; el.hidden = false; }
+    }
+    function modeSecs() { return MODES[practiceMode] ? MODES[practiceMode].secs : 0; }
+    function renderTimer() {
+        var timerEl = document.getElementById('timer');
+        var labelEl = document.getElementById('timerLabel');
+        var secs = modeSecs();
+        if (secs > 0) {
+            var left = Math.max(0, secs - sessionDuration);
+            timerEl.textContent = formatTime(left);
+            timerEl.classList.toggle('timer-low', sessionActive && left <= 10);
+            if (labelEl) labelEl.textContent = 'Time left';
+        } else {
+            timerEl.textContent = formatTime(sessionDuration);
+            timerEl.classList.remove('timer-low');
+            if (labelEl) labelEl.textContent = 'Duration';
+        }
+    }
+    function tick() {
+        sessionDuration++;
+        renderTimer();
+        renderWPM();
+        if (modeSecs() > 0 && sessionDuration >= modeSecs()) endSession();
+    }
+    var modeSelect = document.getElementById('practiceMode');
+    var topicBtn = document.getElementById('topicBtn');
+    if (modeSelect) {
+        modeSelect.addEventListener('change', function () {
+            if (sessionActive) return;
+            practiceMode = this.value;
+            if (practiceMode !== 'free') pickPrompt();
+            renderTimer();
+        });
+    }
+    if (topicBtn) topicBtn.addEventListener('click', function () { if (!sessionActive) pickPrompt(); });
+    function lockPractice(locked) {
+        var w = document.getElementById('practiceWrap');
+        if (w) w.classList.toggle('locked', locked);
+        if (modeSelect) modeSelect.disabled = locked;
+        if (topicBtn) topicBtn.disabled = locked;
     }
 
     // ── Hesitation sounds ──
@@ -229,10 +377,26 @@
 
     function countFillers(text) {
         var counts = {};
+        var exclusions = LANG_CONFIG[currentLang].fillerExclusions || {};
         FILLERS.forEach(function (filler) {
             var nonLatin = isNonLatin([filler]);
-            var m = (nonLatin ? text : text.toLowerCase()).match(fillerRegex(filler, nonLatin));
-            counts[filler] = m ? m.length : 0;
+            var src = nonLatin ? text : text.toLowerCase();
+            var m = src.match(fillerRegex(filler, nonLatin));
+            var n = m ? m.length : 0;
+            (exclusions[filler] || []).forEach(function (phrase) {
+                var x = src.match(fillerRegex(phrase, false));
+                if (x) n -= x.length;
+            });
+            counts[filler] = Math.max(0, n);
+        });
+        return counts;
+    }
+
+    function countHedges(text) {
+        var counts = {}, src = text.toLowerCase();
+        hedgeList().forEach(function (h) {
+            var m = src.match(fillerRegex(h, false));
+            counts[h] = m ? m.length : 0;
         });
         return counts;
     }
@@ -245,10 +409,17 @@
 
     function highlightFillers(text) {
         var matchers = FILLERS.map(function (f) {
-            return { re: fillerRegex(f, isNonLatin([f])), pre: false, len: f.length };
+            return { re: fillerRegex(f, isNonLatin([f])), pre: false, len: f.length, cls: 'filler-highlight' };
         }).concat(LANG_CONFIG[currentLang].hes.map(function (w) {
-            return { re: hesRegex(w), pre: !isUnspacedLang(), len: w.length };
-        }));
+            return { re: hesRegex(w), pre: !isUnspacedLang(), len: w.length, cls: 'filler-highlight' };
+        })).concat(hedgeList().map(function (h) {
+            return { re: fillerRegex(h, false), pre: false, len: h.length + 200, cls: 'hedge-highlight' };
+        })).concat(Object.keys(LANG_CONFIG[currentLang].fillerExclusions || {}).reduce(function (all, f) {
+            // Claim "feel like" and similar first so their "like" is not highlighted as a filler.
+            return all.concat((LANG_CONFIG[currentLang].fillerExclusions[f] || []).map(function (p) {
+                return { re: fillerRegex(p, false), pre: false, len: p.length + 100, cls: '' };
+            }));
+        }, []));
         matchers.sort(function (a, b) { return b.len - a.len; });
         var ranges = [];
         matchers.forEach(function (m) {
@@ -258,13 +429,14 @@
                 if (!r[0].length) { m.re.lastIndex++; continue; }
                 var start = r.index + (m.pre ? r[1].length : 0), end = r.index + r[0].length;
                 var overlaps = ranges.some(function (g) { return start < g[1] && end > g[0]; });
-                if (!overlaps) ranges.push([start, end]);
+                if (!overlaps) ranges.push([start, end, m.cls]);
             }
         });
         ranges.sort(function (a, b) { return a[0] - b[0]; });
         var out = '', pos = 0;
         ranges.forEach(function (g) {
-            out += escapeHtml(text.slice(pos, g[0])) + '<span class="filler-highlight">' + escapeHtml(text.slice(g[0], g[1])) + '</span>';
+            var piece = escapeHtml(text.slice(g[0], g[1]));
+            out += escapeHtml(text.slice(pos, g[0])) + (g[2] ? '<span class="' + g[2] + '">' + piece + '</span>' : piece);
             pos = g[1];
         });
         return out + escapeHtml(text.slice(pos));
@@ -416,6 +588,14 @@
     }
 
     function renderCounters() {
+        var hedgeNum = document.getElementById('count-fc-hedge');
+        if (hedgeNum) {
+            var th = totalHedges();
+            hedgeNum.textContent = th;
+            document.getElementById('card-fc-hedge').classList.toggle('active', th > 0);
+        }
+        var pauseEl = document.getElementById('pauseDisplay');
+        if (pauseEl) pauseEl.textContent = pauseCount;
         counterKeys().forEach(function (filler, k) {
             var id = filler === HES ? 'fc-hes' : 'fc-' + (k - 1);
             var numEl = document.getElementById('count-' + id);
@@ -538,12 +718,14 @@
         sessionDuration = 0;
         accumulatedTranscript = '';
         resetCounts();
-        document.getElementById('timer').textContent = '0:00';
+        renderTimer();
         document.getElementById('wpmDisplay').textContent = '--';
         document.getElementById('wpmDisplay').style.color = '#6b7280';
         document.getElementById('wordsDisplay').textContent = '0';
         renderTranscript('', '');
         renderCounters();
+        resumedAt = Date.now();
+        lockPractice(true);
 
         var btn = document.getElementById('micButton');
         btn.classList.add('active');
@@ -577,12 +759,7 @@
         try { recognition.start(); } catch (e) {}
         startWatchdog();
 
-        timerInterval = setInterval(function () {
-            sessionDuration++;
-            document.getElementById('timer').textContent = formatTime(sessionDuration);
-            renderWPM();
-        }, 1000);
-
+        timerInterval = setInterval(tick, 1000);
     }
 
     function pauseRecording() {
@@ -611,16 +788,14 @@
         btn.innerHTML = MIC_SVG_ON;
         btn.setAttribute('aria-label', 'Pause recording');
         document.getElementById('buttonLabel').textContent = 'Listening...';
+        resumedAt = Date.now();
         try { recognition.start(); } catch (e) {}
         startWatchdog();
-        timerInterval = setInterval(function () {
-            sessionDuration++;
-            document.getElementById('timer').textContent = formatTime(sessionDuration);
-            renderWPM();
-        }, 1000);
+        timerInterval = setInterval(tick, 1000);
     }
 
     function endSession() {
+        if (!sessionActive) return;
         if (isRecording) pauseRecording();
         sessionActive = false;
         stopWatchdog();
@@ -644,7 +819,7 @@
         FILLERS = LANG_CONFIG[currentLang].fillers.slice();
         resetCounts();
 
-        document.getElementById('timer').textContent = '0:00';
+        renderTimer();
         document.getElementById('wpmDisplay').textContent = '--';
         document.getElementById('wpmDisplay').style.color = '#6b7280';
         document.getElementById('wordsDisplay').textContent = '0';
@@ -659,6 +834,7 @@
 
         unlockLangSelector();
         unlockCustomWordInput();
+        lockPractice(false);
         hideDots();
         renderTranscript('', '');
         buildCounterCards();
@@ -684,7 +860,17 @@
             wpmEl.style.color = '#1e3a2e';
         }
 
-        document.getElementById('coachingNote').textContent = buildNote(totalFillers, avgWPM, words, sessionDuration);
+        document.getElementById('summaryPauses').textContent = pauseCount;
+        var hedgeWrap = document.getElementById('summaryHedgesWrap');
+        if (hedgeWrap) {
+            hedgeWrap.hidden = !hedgeList().length;
+            document.getElementById('summaryHedges').textContent = totalHedges();
+        }
+
+        var note = buildNote(totalFillers, avgWPM, words, sessionDuration);
+        if (words >= 5 && sessionDuration >= 30) note += pauseNote() + hedgeNote();
+        document.getElementById('coachingNote').textContent = note;
+        renderRepeats(accumulatedTranscript, words);
 
         // Score
         var score = calcScore(totalFillers, avgWPM);
@@ -704,7 +890,120 @@
         }
         requestAnimationFrame(animateScore);
 
+        modalReturnFocus = document.activeElement;
         document.getElementById('modalOverlay').classList.add('visible');
+        setTimeout(function () { document.getElementById('summaryTitle').focus(); }, 50);
+
+        // Numbers only: other features (progress history, share image) build on this.
+        // The transcript is never included.
+        var minutes = sessionDuration / 60;
+        document.dispatchEvent(new CustomEvent('verba:session-end', { detail: {
+            v: 1,
+            t: Date.now(),
+            dur: sessionDuration,
+            words: words,
+            wpm: avgWPM,
+            fil: totalFillers,
+            fpm: minutes > 0 ? Math.round(totalFillers / minutes * 10) / 10 : 0,
+            score: score,
+            grade: scoreGrade(score),
+            pau: pauseCount,
+            lpau: longPauseCount,
+            hed: totalHedges(),
+            lang: currentLang,
+            mode: practiceMode,
+            modeLabel: MODES[practiceMode].label
+        } }));
+    }
+
+    function capitalizeI(phrase) { return phrase.replace(/\bi\b/g, 'I').replace(/\bi'd\b/g, "I'd"); }
+
+    function pauseNote() {
+        var minutes = sessionDuration / 60;
+        if (!pauseCount) {
+            return ' You never paused for half a second or longer. A deliberate pause before a key point gives listeners time to absorb it, and it is the cleanest replacement for "um."';
+        }
+        var perMin = Math.round(pauseCount / minutes * 10) / 10;
+        var txt = ' You paused ' + pauseCount + ' time' + (pauseCount !== 1 ? 's' : '') + ' (about ' + perMin + ' per minute).';
+        if (longPauseCount) {
+            txt += ' ' + longPauseCount + ' of them ran past ' + LONG_PAUSE + ' seconds; if you lost your place, a short outline helps you pick the thread back up.';
+        } else {
+            txt += ' Pausing on purpose is a skill worth building: it lets a point land and gives your next thought room to form.';
+        }
+        return txt;
+    }
+
+    function hedgeNote() {
+        var total = totalHedges();
+        if (!total) return '';
+        var top = null, n = 0;
+        hedgeList().forEach(function (h) { if ((hedgeCounts[h] || 0) > n) { top = h; n = hedgeCounts[h]; } });
+        return ' You hedged ' + total + ' time' + (total !== 1 ? 's' : '') + ', most often with "' + capitalizeI(top) + '" (' + n + (n === 1 ? ' time' : ' times') + '). Hedges soften your point; where you are sure, say it directly.';
+    }
+
+    // ── Repeated words ──
+    var STOPWORDS = ('a about above after again against all am an and any are as at be because been before being below between both but by ' +
+        'can could did do does doing down during each few for from further had has have having he her here hers herself him himself his how ' +
+        'i if in into is it its itself let me more most my myself no nor not now of off on once only or other our ours ourselves out over own ' +
+        'same she should so some such than that the their theirs them themselves then there these they this those through to too under until ' +
+        'up very was we were what when where which while who whom why will with would you your yours yourself yourselves ' +
+        "i'm i've i'd i'll you're you've you'd you'll he's she's it's we're we've they're they've that's there's what's let's " +
+        "don't doesn't didn't isn't aren't wasn't weren't can't couldn't won't wouldn't shouldn't haven't hasn't hadn't " +
+        'also yeah yes okay ok oh well really get got go going gonna one two three thing things lot lots know think say said like').split(' ');
+    var STOP = {};
+    STOPWORDS.forEach(function (w) { STOP[w] = true; });
+
+    function topRepeats(text, totalWords) {
+        if (currentLang !== 'en-US') return [];
+        var tokens = text.toLowerCase().match(/[a-z']+/g) || [];
+        var skip = {};
+        hedgeList().concat(LANG_CONFIG[currentLang].hes, FILLERS).forEach(function (w) { skip[w] = true; });
+        var counts = {};
+        tokens.forEach(function (t) {
+            t = t.replace(/^'+|'+$/g, '');
+            if (t.length < 3 || STOP[t] || skip[t]) return;
+            counts[t] = (counts[t] || 0) + 1;
+        });
+        var min = Math.max(4, Math.ceil(totalWords * 0.02));
+        return Object.keys(counts).filter(function (w) { return counts[w] >= min; })
+            .sort(function (a, b) { return counts[b] - counts[a]; })
+            .slice(0, 3)
+            .map(function (w) { return { word: w, count: counts[w] }; });
+    }
+
+    function renderRepeats(text, totalWords) {
+        var wrap = document.getElementById('repeatWords');
+        var list = document.getElementById('repeatList');
+        if (!wrap || !list) return;
+        var reps = topRepeats(text, totalWords);
+        list.innerHTML = '';
+        wrap.hidden = !reps.length;
+        reps.forEach(function (r) {
+            var li = document.createElement('li');
+            var label = document.createElement('span');
+            label.textContent = '\u201c' + r.word + '\u201d ' + r.count + ' times';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'track-word-btn';
+            btn.textContent = 'Track it next time';
+            btn.setAttribute('aria-label', 'Track the word ' + r.word + ' in your next session');
+            btn.addEventListener('click', function () {
+                closeModal();
+                var input = document.getElementById('customWordInput');
+                if (input) {
+                    input.value = r.word;
+                    input.classList.add('just-set');
+                    setTimeout(function () { input.classList.remove('just-set'); }, 1600);
+                }
+                var card = document.getElementById('demoCard');
+                if (card && card.scrollIntoView) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                var mic = document.getElementById('micButton');
+                if (mic) mic.focus({ preventScroll: true });
+            });
+            li.appendChild(label);
+            li.appendChild(btn);
+            list.appendChild(li);
+        });
     }
 
     function buildNote(totalFillers, avgWPM, words, duration) {
@@ -829,9 +1128,23 @@
         });
     }
 
-    document.getElementById('closeModal').addEventListener('click', function () {
-        document.getElementById('modalOverlay').classList.remove('visible');
+    var modalReturnFocus = null;
+    function closeModal() {
+        var overlay = document.getElementById('modalOverlay');
+        if (!overlay.classList.contains('visible')) return;
+        overlay.classList.remove('visible');
         resetDemo();
+        if (modalReturnFocus && modalReturnFocus.focus) modalReturnFocus.focus({ preventScroll: true });
+    }
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    document.getElementById('modalOverlay').addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { closeModal(); return; }
+        if (e.key !== 'Tab') return;
+        var f = Array.prototype.filter.call(this.querySelectorAll('a[href], button, input, [tabindex="-1"]'), function (el) { return !el.hidden && el.offsetParent !== null; });
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
 
 })();
@@ -1443,6 +1756,7 @@
     // "verba:hesitation" event; the demo script decides whether to count them.
     function startHesitationDetector(ctx, source) {
         function announce() { document.dispatchEvent(new CustomEvent('verba:hesitation')); }
+        function announcePause(d) { document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: d } })); }
         var sink = ctx.createGain();
         sink.gain.value = 0;            // keeps the node processing without making any sound
         sink.connect(ctx.destination);
@@ -1450,6 +1764,7 @@
             if (audioCtx !== ctx || !window.VerbaHesitationDetector || !ctx.createScriptProcessor) return;
             var detector = new window.VerbaHesitationDetector(ctx.sampleRate);
             detector.onDetect = announce;
+            detector.onPause = announcePause;
             var node = ctx.createScriptProcessor(2048, 1, 1);
             node.onaudioprocess = function (e) { detector.process(e.inputBuffer.getChannelData(0)); };
             source.connect(node);
@@ -1459,7 +1774,11 @@
             ctx.audioWorklet.addModule('hesitation.js').then(function () {
                 if (audioCtx !== ctx) return;
                 var node = new AudioWorkletNode(ctx, 'verba-hesitation');
-                node.port.onmessage = function (e) { if (e.data && e.data.type === 'hesitation') announce(); };
+                node.port.onmessage = function (e) {
+                    if (!e.data) return;
+                    if (e.data.type === 'hesitation') announce();
+                    else if (e.data.type === 'pause') announcePause(e.data.d);
+                };
                 source.connect(node);
                 node.connect(sink);
             }).catch(fallback);

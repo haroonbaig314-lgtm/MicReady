@@ -2219,6 +2219,7 @@
             #page-sweep.cover  { animation-duration: 0.25s; }
         }
     </style>
+    <link rel="stylesheet" href="features.css">
 </head>
 <body>
 
@@ -2250,7 +2251,7 @@
 <!-- Session Summary Modal -->
 <div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
     <div class="modal-card">
-        <h3 id="summaryTitle">Session Summary</h3>
+        <h3 id="summaryTitle" tabindex="-1">Session Summary</h3>
         <div class="score-display">
             <div class="score-value" id="scoreValue">--</div>
             <div class="score-label" id="scoreLabel">&nbsp;</div>
@@ -2272,8 +2273,30 @@
                 <div class="modal-stat-value" id="summaryWPM" style="color:#1e3a2e">--</div>
                 <div class="modal-stat-label">Avg WPM</div>
             </div>
+            <div class="modal-stat">
+                <div class="modal-stat-value" id="summaryPauses">0</div>
+                <div class="modal-stat-label">Pauses</div>
+            </div>
+            <div class="modal-stat" id="summaryHedgesWrap">
+                <div class="modal-stat-value" id="summaryHedges">0</div>
+                <div class="modal-stat-label">Hedges</div>
+            </div>
         </div>
         <div class="coaching-note" id="coachingNote">Analyzing your session...</div>
+        <div class="repeat-words" id="repeatWords" hidden>
+            <h4>Words you repeated</h4>
+            <ul id="repeatList"></ul>
+        </div>
+        <div class="modal-extras">
+            <label class="save-toggle"><input type="checkbox" id="saveProgress"> Save my progress on this device</label>
+            <p class="share-label" id="shareLabel">Share your result</p>
+            <div class="share-row" role="group" aria-labelledby="shareLabel">
+                <button type="button" class="share-btn" id="shareNative" hidden>Share image</button>
+                <button type="button" class="share-btn" id="shareStory">Story image</button>
+                <button type="button" class="share-btn" id="shareWide">LinkedIn image</button>
+            </div>
+            <p class="share-note">Images are made in your browser and include only your scores, never your words.</p>
+        </div>
         <button class="close-modal-btn" id="closeModal">Close &amp; Reset</button>
     </div>
 </div>
@@ -2493,7 +2516,7 @@
             <div class="stats-row">
                 <div class="stat-block">
                     <div class="timer" id="timer">0:00</div>
-                    <div class="stat-label">Duration</div>
+                    <div class="stat-label" id="timerLabel">Duration</div>
                 </div>
                 <div class="stat-block">
                     <div class="wpm-value" id="wpmDisplay">--</div>
@@ -2503,6 +2526,10 @@
                     <div class="words-value" id="wordsDisplay">0</div>
                     <div class="stat-label">Words</div>
                 </div>
+                <div class="stat-block">
+                    <div class="words-value" id="pauseDisplay">0</div>
+                    <div class="stat-label">Pauses</div>
+                </div>
             </div>
 
             <div class="filler-counters" id="fillerCounters"></div>
@@ -2510,6 +2537,26 @@
 
             <div class="transcript-box" id="transcript">
                 <div class="typing-dots" id="typingDots" aria-hidden="true"><span></span><span></span><span></span></div><span id="transcript-placeholder" class="transcript-placeholder">Waiting for speech input...</span><span id="transcript-final"></span><span id="transcript-interim" class="interim-text"></span>
+            </div>
+
+            <div class="practice-wrap" id="practiceWrap">
+                <div class="practice-row">
+                    <div class="practice-field">
+                        <label class="lang-selector-label" for="practiceMode">Practice mode</label>
+                        <div class="lang-select-row">
+                            <select class="lang-select" id="practiceMode">
+                                <option value="free">Free practice</option>
+                                <option value="pitch">60-second pitch · 1:00</option>
+                                <option value="interview">Interview answer · 2:00</option>
+                                <option value="presentation">Class presentation · 3:00</option>
+                                <option value="impromptu">Impromptu talk · 1:00</option>
+                            </select>
+                            <span class="lang-select-arrow" aria-hidden="true">&#9660;</span>
+                        </div>
+                    </div>
+                    <button type="button" class="topic-btn" id="topicBtn">Give me a topic</button>
+                </div>
+                <p class="practice-prompt" id="practicePrompt" aria-live="polite" hidden></p>
             </div>
 
             <div class="lang-selector-wrap" id="langSelectorWrap">
@@ -2567,6 +2614,39 @@
             </div>
         </div>
         </div><!-- /.demo-card-wrap -->
+
+        <div class="progress-panel" id="progress" aria-labelledby="progressTitle">
+            <div class="progress-head">
+                <h3 id="progressTitle">Your progress</h3>
+                <p class="progress-sub">Saved only in this browser on this device. Nothing is sent anywhere.</p>
+            </div>
+            <div class="progress-empty" id="progressEmpty">
+                <p id="progressEmptyText">Progress tracking is off. Turn it on to keep a history of your sessions on this device and see how your filler rate, pace and score change over time.</p>
+                <button type="button" class="progress-btn" id="progressEnable">Turn on progress tracking</button>
+            </div>
+            <div class="progress-body" id="progressBody" hidden>
+                <div class="kpi-row" id="kpiRow"></div>
+                <div class="chart-tabs" role="tablist" aria-label="Chart metric">
+                    <button type="button" role="tab" class="chart-tab" id="tab-fpm" aria-selected="true" data-metric="fpm">Fillers per minute</button>
+                    <button type="button" role="tab" class="chart-tab" id="tab-wpm" aria-selected="false" data-metric="wpm">Pace (WPM)</button>
+                    <button type="button" role="tab" class="chart-tab" id="tab-score" aria-selected="false" data-metric="score">Score</button>
+                </div>
+                <div class="chart-wrap" id="chartWrap" role="tabpanel">
+                    <p class="chart-title" id="chartTitle"></p>
+                    <div class="chart-area" id="chartArea" tabindex="0" aria-describedby="chartTitle"></div>
+                    <div class="chart-tip" id="chartTip" hidden></div>
+                </div>
+                <details class="chart-table">
+                    <summary>Show sessions as a table</summary>
+                    <div class="chart-table-scroll"><table id="historyTable"></table></div>
+                </details>
+                <div class="progress-actions">
+                    <button type="button" class="progress-btn secondary" id="progressStop">Stop saving sessions</button>
+                    <button type="button" class="progress-btn secondary" id="progressClear">Clear my history</button>
+                </div>
+            </div>
+            <button type="button" class="install-btn" id="installBtn" hidden>Add Verba to your home screen</button>
+        </div>
     </div>
 </section>
 
@@ -2900,7 +2980,34 @@
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">Yes. In the live demo there is a custom word tracker field where you can type any word you want Verba to detect. If you say &ldquo;basically&rdquo; or &ldquo;honestly&rdquo; or any other word constantly, type it in before starting your session and Verba will track it alongside um, uh, and like.</div>
+                    <div class="faq-answer-inner">Yes. In the live demo there is a custom word tracker field where you can type any word you want Verba to detect. If you say &ldquo;basically&rdquo; or &ldquo;honestly&rdquo; or any other word constantly, type it in before starting your session and Verba will track it alongside um, uh, and like. After an English session, Verba also points out words you repeated unusually often, and one tap tracks that word next time.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
+                    <span class="faq-question-text">Does Verba keep a history of my practice?</span>
+                    <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Only if you turn on progress tracking. Your session scores, pace, filler rate and pause counts are then saved in this browser on this device, so you can see your progress and your practice streak. Your words are never saved. Nothing is sent to Verba, and you can stop saving or delete your history at any time from the &ldquo;Your progress&rdquo; panel.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
+                    <span class="faq-question-text">Can I install Verba on my phone?</span>
+                    <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Yes. On Android, open the site in Chrome and choose &ldquo;Add to home screen&rdquo; (or use the install button under the demo when it appears). On iPhone, open it in Safari, tap the Share button and choose &ldquo;Add to Home Screen.&rdquo; Verba then opens like an app. The speech transcript still needs an internet connection in most browsers.</div>
+                </div>
+            </div>
+            <div class="faq-item">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
+                    <span class="faq-question-text">What do practice modes do?</span>
+                    <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
+                </div>
+                <div class="faq-answer">
+                    <div class="faq-answer-inner">Pick a mode such as a 60-second pitch, an interview answer or a class presentation, and tap &ldquo;Give me a topic&rdquo; for a prompt. Timed modes count down and end the session automatically when time runs out, so you practice speaking to a limit.</div>
                 </div>
             </div>
         </div>
@@ -2934,6 +3041,7 @@
 <script src="hesitation.js" defer></script>
 <script src="site.js" defer></script>
 <script src="home.js" defer></script>
+<script src="features.js" defer></script>
 
 <script>
 (function () {
