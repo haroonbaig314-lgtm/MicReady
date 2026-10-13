@@ -71,9 +71,8 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
 .feat-info { border-color: var(--d-accent); }
 .problem-card p, .feature-card p, .how-it-works-subtitle, .hiw-desc, .demo-subtitle, .comparison-subtitle,
 .testimonials-subtitle, .faq-subtitle, .faq-answer-inner, .testimonial-role, .modal-stat-label, .score-label,
-.stat-label, .filler-counter-label, .filler-counter-est, .filler-est-note, .lang-selector-label, .custom-word-optional,
+.stat-label, .filler-counter-label, .filler-counter-est, .filler-est-note, .lang-selector-label,
 .button-label, .lang-select-arrow, .flip-hint, .comparison-footnote, .testimonials-note, .cross, .neutral { color: var(--d-muted); }
-.custom-word-label { color: var(--d-accent); }
 
 .problem-card, .feature-card, .verba-feature-card, .testimonial-card { background: var(--d-surface); }
 .problem-card { border-color: #3aa868; }
@@ -104,11 +103,9 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
     0%   { background: rgba(248, 113, 113, 0.35); }
     100% { background: rgba(248, 113, 113, 0.12); }
 }
-.lang-select, .custom-word-input { background: var(--d-surface-2); color: var(--d-text); border-color: #3a5144; }
-.custom-word-input::placeholder { color: #8fa197; }
-.custom-word-wrap.locked .custom-word-input { background: #18241d; }
-.custom-word-btn, .topic-btn { background: var(--d-surface-2); color: var(--d-accent); border-color: var(--d-accent); }
-.custom-word-btn:hover, .topic-btn:hover { background: #2d5a44; color: #ffffff; }
+.lang-select { background: var(--d-surface-2); color: var(--d-text); border-color: #3a5144; }
+.topic-btn { background: var(--d-surface-2); color: var(--d-accent); border-color: var(--d-accent); }
+.topic-btn:hover { background: #2d5a44; color: #ffffff; }
 .seg-meter-bar { background: var(--d-border); }
 .end-session-btn { color: var(--d-danger); border-color: var(--d-danger); }
 .end-session-btn:hover { background: #dc2626; color: #ffffff; }
@@ -137,7 +134,7 @@ tbody tr:hover { background: var(--d-surface-2); }
 .disclaimer-cancel { background: var(--d-surface); color: var(--d-accent); border-color: var(--d-accent); }
 
 /* features.css extras that use fixed hover colors */
-.track-word-btn:hover, .share-btn:hover, .progress-btn.secondary:hover, .install-btn:hover { background: var(--d-surface-2); }
+.share-btn:hover, .progress-btn.secondary:hover, .install-btn:hover { background: var(--d-surface-2); }
 .progress-btn { background: #2d5a44; color: #ffffff; border-color: #3aa868; }
 .progress-btn:hover { background: #3aa868; color: #0f1a14; }
 .chart-tab[aria-selected="true"] { background: #e9f3ec; border-color: #e9f3ec; color: #0f1a14; }

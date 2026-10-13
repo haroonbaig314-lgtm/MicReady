@@ -104,7 +104,6 @@
     text-decoration-thickness: 2px;
     text-underline-offset: 3px;
 }
-.custom-word-input.just-set { box-shadow: 0 0 0 3px rgba(45, 90, 68, 0.35); }
 
 /* ── Session summary extras ── */
 .repeat-words {
@@ -129,7 +128,7 @@
     font-size: 0.92rem;
     color: var(--vf-text);
 }
-.track-word-btn, .share-btn, .progress-btn, .install-btn {
+.share-btn, .progress-btn, .install-btn {
     min-height: 40px;
     padding: 0.45rem 0.9rem;
     border-radius: 10px;
@@ -142,7 +141,7 @@
     cursor: pointer;
     white-space: nowrap;
 }
-.track-word-btn:hover, .share-btn:hover, .progress-btn.secondary:hover, .install-btn:hover { background: #eef5f0; }
+.share-btn:hover, .progress-btn.secondary:hover, .install-btn:hover { background: #eef5f0; }
 .modal-extras {
     border-top: 1px solid var(--vf-grid);
     padding-top: 1.1rem;

@@ -93,10 +93,14 @@ test('summary dialog: focus, Escape, honest no-filler note, repeated words', asy
     await expect(page.locator('#summaryTitle')).toBeFocused();
     await expect(page.locator('#coachingNote')).toContainText('No filler words were detected this session. Detection is an estimate');
     await expect(page.locator('#repeatList li')).toHaveCount(1);
-    await expect(page.locator('#repeatList li')).toContainText('basically');
-    await page.getByRole('button', { name: /Track the word basically/ }).click();
-    await expect(page.locator('#modalOverlay')).not.toHaveClass(/visible/);
-    await expect(page.locator('#customWordInput')).toHaveValue('basically');
+    await expect(page.locator('#repeatList li')).toHaveText('\u201cbasically\u201d 4 times');
+    await expect(page.locator('#repeatList button')).toHaveCount(0);
+});
+
+test('there is no custom word tracker', async ({ page }) => {
+    await openDemo(page);
+    await expect(page.locator('#customWordInput')).toHaveCount(0);
+    await expect(page.getByText('Track a custom word')).toHaveCount(0);
 });
 
 test('Escape closes the summary and resets the demo', async ({ page }) => {
