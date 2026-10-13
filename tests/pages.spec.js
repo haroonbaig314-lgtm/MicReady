@@ -55,3 +55,14 @@ test('sitemap lists every page', async ({ request }) => {
         expect(xml).toContain(`<loc>https://haroonbaig314-lgtm.github.io/Verba/${path}</loc>`);
     }
 });
+
+test('the on-page tool is labelled MVP and nothing links to the old Glide app', async ({ page }) => {
+    for (const name of ['index.html', 'future.html']) {
+        await page.goto('/' + name);
+        await expect(page.locator('a[href*="glide.page"]')).toHaveCount(0);
+        await expect(page.getByRole('link', { name: /Try (the )?(Verba )?MVP/ })).toHaveCount(0);
+    }
+    await page.goto('/index.html');
+    await expect(page.locator('.demo-badge')).toHaveText('MVP');
+    await expect(page.getByText('This is a lightweight browser-based preview')).toHaveCount(0);
+});
