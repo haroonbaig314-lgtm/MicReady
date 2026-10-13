@@ -125,6 +125,29 @@ test('pauses are counted live and long ones are called out in the summary', asyn
     await expect(page.locator('#coachingNote')).toContainText('ran past 3 seconds');
 });
 
+test('the summary says when background noise limited pause counting to a second or longer', async ({ page }) => {
+    await openDemo(page, { clock: true });
+    await startSession(page);
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:noise', { detail: { noisy: true } })));
+    await page.clock.runFor(5000);
+    await pause(page, 1.4);
+    await say(page, 'this is a longer practice answer with plenty of words so that the summary has enough to work with today ');
+    await page.clock.runFor(30000);
+    await page.locator('#endSessionBtn').click({ force: true });
+    await expect(page.locator('#coachingNote')).toContainText('There was background noise, so for that part only pauses of a second or longer were counted.');
+});
+
+test('in a quiet session the summary does not mention background noise', async ({ page }) => {
+    await openDemo(page, { clock: true });
+    await startSession(page);
+    await page.clock.runFor(5000);
+    await say(page, 'this is a longer practice answer with plenty of words so that the summary has enough to work with today ');
+    await page.clock.runFor(30000);
+    await page.locator('#endSessionBtn').click({ force: true });
+    await expect(page.locator('#coachingNote')).toContainText('You never paused for half a second or longer.');
+    await expect(page.locator('#coachingNote')).not.toContainText('background noise');
+});
+
 test('a pause that spans a manual pause of the session is ignored', async ({ page }) => {
     await openDemo(page, { clock: true });
     await startSession(page);

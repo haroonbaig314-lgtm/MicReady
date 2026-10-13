@@ -55,6 +55,7 @@
         marks = [];
         lastInterim = '';
         lastResultAt = 0;
+        noisySeen = false;
         hedgeCounts = {};
         pauseCount = 0; longPauseCount = 0; pauseSeconds = 0;
     }
@@ -75,6 +76,7 @@
     var MARK_PAUSE = 2;         // seconds; shorter pauses are counted but not shown in the transcript
     var micSignal = 'unknown';  // 'ok' or 'none': whether the sound analysis hears the microphone
     var lastResultAt = 0;       // for estimating pauses from the transcript when it does not
+    var noisySeen = false;      // background noise mode was on at some point this session
     var hedgeCounts = {};
     var pauseCount = 0, longPauseCount = 0, pauseSeconds = 0;
     var resumedAt = 0;          // when listening last (re)started, so pauses never span a manual pause
@@ -234,6 +236,9 @@
     });
     document.addEventListener('verba:mic-status', function (e) {
         micSignal = e.detail && e.detail.ok ? 'ok' : 'none';
+    });
+    document.addEventListener('verba:noise', function (e) {
+        if (isRecording && e.detail && e.detail.noisy) noisySeen = true;
     });
 
     // ── Practice modes and topics ──
@@ -944,11 +949,12 @@
 
     function pauseNote() {
         var minutes = sessionDuration / 60;
+        var noiseTxt = noisySeen ? ' There was background noise, so for that part only pauses of a second or longer were counted.' : '';
         if (!pauseCount) {
-            return ' You never paused for half a second or longer. A deliberate pause before a key point gives listeners time to absorb it, and it is the cleanest replacement for "um."';
+            return ' You never paused for ' + (noisySeen ? 'a second' : 'half a second') + ' or longer. A deliberate pause before a key point gives listeners time to absorb it, and it is the cleanest replacement for "um."' + noiseTxt;
         }
         var perMin = Math.round(pauseCount / minutes * 10) / 10;
-        var txt = ' You paused ' + pauseCount + ' time' + (pauseCount !== 1 ? 's' : '') + ' (about ' + perMin + ' per minute).';
+        var txt = ' You paused ' + pauseCount + ' time' + (pauseCount !== 1 ? 's' : '') + ' (about ' + perMin + ' per minute).' + noiseTxt;
         if (longPauseCount) {
             txt += ' ' + longPauseCount + ' of them ran past ' + LONG_PAUSE + ' seconds; if you lost your place, a short outline helps you pick the thread back up.';
         } else {
@@ -1740,8 +1746,17 @@
         if (micNote) micNote.hidden = ok;
         document.dispatchEvent(new CustomEvent('verba:mic-status', { detail: { ok: ok } }));
     }
-    function onLevel(db) {
+    var noiseNote = document.getElementById('noiseNote'), noisyNow = false;
+    function setNoisy(noisy) {
+        noisy = !!noisy;
+        if (noisy === noisyNow) return;
+        noisyNow = noisy;
+        if (noiseNote) noiseNote.hidden = !noisy;
+        document.dispatchEvent(new CustomEvent('verba:noise', { detail: { noisy: noisy } }));
+    }
+    function onLevel(db, floor, noisy) {
         if (!audioCtx) return;
+        setNoisy(noisy);
         lastLevelAt = audioCtx.currentTime;
         if (db > -100) lastSoundAt = lastLevelAt;
     }
@@ -1824,7 +1839,7 @@
                     if (!e.data) return;
                     if (e.data.type === 'hesitation') announce();
                     else if (e.data.type === 'pause') announcePause(e.data.d);
-                    else if (e.data.type === 'level') onLevel(e.data.db);
+                    else if (e.data.type === 'level') onLevel(e.data.db, e.data.floor, e.data.noisy);
                 };
                 source.connect(node);
                 node.connect(sinkFor(ctx));
@@ -1890,6 +1905,7 @@
             if (audioCtx) { try { audioCtx.close(); } catch (e) {} audioCtx = null; }
             if (micStream) { micStream.getTracks().forEach(function (t) { t.stop(); }); micStream = null; }
             clearInterval(checkTimer);
+            setNoisy(false);
             analyser = null; micSource = null; workletNode = null; sinkNode = null;
         }
     }

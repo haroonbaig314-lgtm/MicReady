@@ -41,7 +41,24 @@ var VerbaHesitationDetector = (function () {
         // Pauses: silence between two stretches of speech.
         pauseSpeechDb: 14,      // dB above the noise floor that counts as speaking
         pauseSilenceDb: 8,      // dB above the noise floor below which it is silent
-        minPause: 0.5           // seconds of silence reported as a pause
+        minPause: 0.5,          // seconds of silence reported as a pause
+        // Noise mode: switched on only while the background is loud compared with the voice
+        // (a fan, a cafe, music). In a quiet room none of these settings are used. Tuned on the
+        // validation split mixed with fan noise, six-talker babble and music, 10 to 20 dB below
+        // the voice, and checked on the test split.
+        noisyBelowDb: 26,       // voice less than this many dB above the background: noise mode on
+        quietAboveDb: 30,       // voice more than this many dB above it again: noise mode off
+        switchSeconds: 1,       // the condition has to hold this long before the mode changes
+        noisyVoicedAp: 0.45,    // pauses: a voiced frame this periodic counts as speaking...
+        noisyVoicedShare: 0.7,  // ...when it is this share of the voice level above the background
+        noisyLoudShare: 0.75,   // pauses: any frame this share of the voice level above it is speaking
+        noisyOnsetFrames: 3,    // pauses: frames of speech needed to end a pause
+        noisyMinPause: 1.0,     // pauses: in noise, shorter gaps cannot be told apart from quiet speech
+        noisyEdgeTrim: 0.1,     // pauses: seconds taken off, for the quiet word ends counted as silence
+        noisyEnergyShare: 0.75, // um/uh: a held sound must reach this share of the voice level
+        noisyMaxVowelChange: 3.5,
+        noisyMaxAperiodicity: 0.35,
+        noisyMinStableFraction: 0.9
     };
 
     var SILENT_DB = -100;       // frames this quiet are digital silence (a muted or starting stream)
@@ -86,6 +103,9 @@ var VerbaHesitationDetector = (function () {
         this.levelCount = 0;
         this.levelPos = 0;
         this.noiseDb = null;    // unknown until a frame that is not digital silence arrives
+        this.silentRing = new Uint8Array(this.levels.length);   // which recent frames were digital silence
+        this.silentPos = 0;
+        this.silentCount = 0;
 
         this.frames = 0;
         this.time = 0;          // seconds of audio processed
@@ -98,6 +118,11 @@ var VerbaHesitationDetector = (function () {
         this.levelMax = -Infinity;
         this.heardSpeech = false;
         this.silentFrames = 0;
+        this.onsetFrames = 0;
+        this.voiceDb = null;    // running level of the speaker's voiced sounds
+        this.snr = null;        // voice level above the noise floor, in dB
+        this.noisy = false;     // noise mode
+        this.switchCount = 0;
     }
 
     Detector.prototype.resetRun = function () {
@@ -133,7 +158,11 @@ var VerbaHesitationDetector = (function () {
     // so a stream that starts with zeros (common while a microphone wakes up) or a burst
     // of loud speech cannot leave it stuck too low or too high.
     Detector.prototype.updateFloor = function (db) {
-        if (db <= SILENT_DB) return;
+        var silent = db <= SILENT_DB ? 1 : 0;
+        this.silentCount += silent - this.silentRing[this.silentPos];
+        this.silentRing[this.silentPos] = silent;
+        this.silentPos = (this.silentPos + 1) % this.silentRing.length;
+        if (silent) return;
         var lv = this.levels;
         lv[this.levelPos] = db;
         this.levelPos = (this.levelPos + 1) % lv.length;
@@ -159,7 +188,7 @@ var VerbaHesitationDetector = (function () {
 
         if (db > this.levelMax) this.levelMax = db;
         if (this.frames % 25 === 0) {
-            if (this.onLevel) this.onLevel(this.levelMax, this.noiseDb);
+            if (this.onLevel) this.onLevel(this.levelMax, this.noiseDb, this.noisy);
             this.levelMax = -Infinity;
         }
 
@@ -231,8 +260,30 @@ var VerbaHesitationDetector = (function () {
         var vowelChange = recent.length === LAG + 1 ? cepDistance(cep, recent[0]) : Infinity;
 
         var frame = { t: this.time, db: db, noiseDb: this.noiseDb, ap: bestVal, f0: f0, cep: cep, vowelChange: vowelChange };
+        this.trackBackground(frame);
         this.trackPause(frame);
         this.decide(frame);
+    };
+
+    // How loud the background is compared with the voice, and whether noise mode is on.
+    Detector.prototype.trackBackground = function (fr) {
+        var o = this.opts;
+        if (fr.noiseDb === null) return;
+        if (fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < 0.25 && fr.db > fr.noiseDb + 6) {
+            this.voiceDb = this.voiceDb === null ? fr.db : this.voiceDb + 0.02 * (fr.db - this.voiceDb);
+        }
+        if (this.voiceDb === null) return;
+        this.snr = this.voiceDb - fr.noiseDb;
+        // A room with background noise never gives exact digital silence. A microphone that
+        // does (a noise gate, or one still waking up) has no background at all, even though
+        // the floor is then measured on quiet speech.
+        var gated = this.silentCount >= 10;
+        var want = !gated && (this.noisy ? this.snr <= o.quietAboveDb : this.snr < o.noisyBelowDb);
+        if (want === this.noisy) { this.switchCount = 0; return; }
+        if (++this.switchCount >= o.switchSeconds * this.fs / this.hop) {
+            this.noisy = want;
+            this.switchCount = 0;
+        }
     };
 
     // Distance between two spectral envelopes, in dB.
@@ -251,6 +302,27 @@ var VerbaHesitationDetector = (function () {
             return;
         }
         var above = fr.db - fr.noiseDb;
+        if (this.noisy) {
+            // In noise, loudness alone cannot tell quiet speech from the background, so
+            // speaking means a voiced sound well above it, or anything close to voice level.
+            var speaking = (fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < o.noisyVoicedAp &&
+                            above > Math.max(6, o.noisyVoicedShare * this.snr)) || above > o.noisyLoudShare * this.snr;
+            if (!speaking) {
+                this.onsetFrames = 0;
+                if (this.heardSpeech) this.silentFrames++;
+                return;
+            }
+            if (++this.onsetFrames < o.noisyOnsetFrames) {
+                if (this.heardSpeech) this.silentFrames++;
+                return;
+            }
+            var quiet = (this.silentFrames - (o.noisyOnsetFrames - 1)) * this.hop / this.fs - o.noisyEdgeTrim;
+            if (this.heardSpeech && quiet >= o.noisyMinPause && this.onPause) this.onPause(quiet, fr.t);
+            this.heardSpeech = true;
+            this.silentFrames = 0;
+            return;
+        }
+        this.onsetFrames = 0;
         if (above >= o.pauseSpeechDb && fr.db > -85) {
             var secs = this.silentFrames * this.hop / this.fs;
             if (this.heardSpeech && secs >= o.minPause && this.onPause) this.onPause(secs, fr.t);
@@ -268,8 +340,15 @@ var VerbaHesitationDetector = (function () {
     // Decide, frame by frame, whether a held hesitation sound is in progress.
     Detector.prototype.decide = function (fr) {
         var o = this.opts, run = this.run, frames = run.frames;
-        var voiced = fr.noiseDb !== null && fr.db > fr.noiseDb + o.minEnergyDb && fr.db > -85 &&
-            fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < o.maxAperiodicity;
+        // In noise mode a held sound has to be near the speaker's own level, so a hum or a
+        // voice in the background is not taken for the speaker's "um".
+        var noisy = this.noisy;
+        var minEnergy = noisy ? Math.max(o.minEnergyDb, o.noisyEnergyShare * this.snr) : o.minEnergyDb;
+        var maxAp = noisy ? o.noisyMaxAperiodicity : o.maxAperiodicity;
+        var maxChange = noisy ? o.noisyMaxVowelChange : o.maxVowelChange;
+        var minStable = noisy ? o.noisyMinStableFraction : o.minStableFraction;
+        var voiced = fr.noiseDb !== null && fr.db > fr.noiseDb + minEnergy && fr.db > -85 &&
+            fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < maxAp;
         var st = voiced ? 12 * Math.log(fr.f0 / 100) / Math.LN2 : 0;
         if (voiced && run.lastSt !== null && Math.abs(st - run.lastSt) > o.maxPitchJump) {
             // An octave error is folded back; any other sudden jump is a tracking glitch.
@@ -286,7 +365,7 @@ var VerbaHesitationDetector = (function () {
         run.bad = 0;
         run.lastSt = st;
         var back = frames.length >= LAG ? frames[frames.length - LAG] : null;
-        var steady = fr.vowelChange <= o.maxVowelChange && !(back && Math.abs(back.st - st) > o.maxPitchStep);
+        var steady = fr.vowelChange <= maxChange && !(back && Math.abs(back.st - st) > o.maxPitchStep);
         frames.push({ st: st, steady: steady, cep: fr.cep });
         if (frames.length > W) frames.shift();
         if (run.emitted || frames.length < W) return;
@@ -301,7 +380,7 @@ var VerbaHesitationDetector = (function () {
             if (!first) first = e;
             last = e;
         }
-        if (hi - lo <= o.maxPitchRange && nSteady / W >= o.minStableFraction &&
+        if (hi - lo <= o.maxPitchRange && nSteady / W >= minStable &&
             cepDistance(first.cep, last.cep) <= o.maxVowelDrift) {
             run.emitted = true;
             if (this.onDetect) this.onDetect(fr.t);
@@ -320,7 +399,7 @@ if (typeof registerProcessor === 'function') {
             this.detector = new VerbaHesitationDetector(sampleRate);
             this.detector.onDetect = function (t) { port.postMessage({ type: 'hesitation', t: t }); };
             this.detector.onPause = function (d) { port.postMessage({ type: 'pause', d: d }); };
-            this.detector.onLevel = function (db, floor) { port.postMessage({ type: 'level', db: db, floor: floor }); };
+            this.detector.onLevel = function (db, floor, noisy) { port.postMessage({ type: 'level', db: db, floor: floor, noisy: noisy }); };
         }
         process(inputs) {
             var input = inputs[0];
