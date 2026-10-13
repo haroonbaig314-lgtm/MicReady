@@ -1,5 +1,6 @@
-/* Verba dark mode. Loaded on every page with media="(prefers-color-scheme: dark)",
-   so it only applies when the visitor's device is set to dark. Loaded last, so it
+/* Verba dark mode. Linked on every page as #darkCss with media="not all", so the site
+   opens light. The sun/moon button (site.js) switches it on by setting media="all",
+   and the choice is remembered in localStorage ("verba_theme"). Loaded last, so it
    overrides the light styles with the same specificity. */
 
 :root {

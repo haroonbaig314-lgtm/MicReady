@@ -108,7 +108,8 @@
             main { padding: 2rem 16px 3rem; }
         }
     </style>
-    <link rel="stylesheet" href="dark.css" media="(prefers-color-scheme: dark)">
+    <link rel="stylesheet" href="dark.css" id="darkCss" media="not all">
+    <script>try{if(localStorage.getItem('verba_theme')==='dark'){document.getElementById('darkCss').media='all';document.documentElement.setAttribute('data-theme','dark');}}catch(e){}</script>
 </head>
 <body class="legal">
 <a class="skip-link" href="#main">Skip to main content</a>
@@ -135,6 +136,7 @@
         <tbody>
             <tr><td><code>verba_consent</code></td><td>Local storage</td><td>Remembers whether you accepted or rejected optional third-party content</td><td>Until you clear site data</td><td>Strictly necessary</td></tr>
             <tr><td><code>verba_disclaimer_seen</code></td><td>Local storage</td><td>Remembers that you have read the browser demo notice, so it is not shown each time</td><td>Until you clear site data</td><td>Functional, set only when you start the demo</td></tr>
+            <tr><td><code>verba_theme</code></td><td>Local storage</td><td>Remembers whether you switched the site to dark mode with the sun/moon button</td><td>Until you clear site data</td><td>Functional, set only when you use the button</td></tr>
             <tr><td><code>verba_history_opt</code></td><td>Local storage</td><td>Remembers whether you turned progress tracking on or off</td><td>Until you clear site data</td><td>Functional, set only when you choose</td></tr>
             <tr><td><code>verba_history</code></td><td>Local storage</td><td>Your saved practice sessions (numbers only: date, length, pace, filler and hedge counts, pauses, score), shown in the "Your progress" panel</td><td>Until you delete it from the panel or clear site data</td><td>Functional, only if you turn on progress tracking</td></tr>
             <tr><td><code>verba-*</code> cache</td><td>Cache storage (service worker)</td><td>A copy of the Site's own pages, styles and scripts so it can open offline and load faster</td><td>Replaced when the Site updates; removed when you clear site data</td><td>Functional</td></tr>
