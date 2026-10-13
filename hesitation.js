@@ -2,10 +2,15 @@
  *
  * Browser speech recognition drops most filled pauses from its transcript, so this
  * detector works on the raw microphone signal instead. A filled pause is a held,
- * voiced sound with an almost constant pitch and a steady spectrum, lasting a few
- * hundred milliseconds. Ordinary words change pitch and spectrum far more quickly.
+ * voiced sound with an almost constant pitch and a steady vowel quality, lasting a few
+ * hundred milliseconds. Ordinary words change pitch and vowel quality far more quickly.
  * (Approach after Goto, Itou & Hayamizu, "A real-time filled pause detection system
  * for spontaneous speech recognition", Eurospeech 1999.)
+ *
+ * Vowel quality is measured with an LPC cepstrum, which follows the shape of the vocal
+ * tract and ignores the pitch harmonics, so a held sound still counts when its pitch
+ * drifts. The decision looks at a sliding window, so a hesitation that runs straight on
+ * from a word ("so-uhh") is found as well as one that stands alone.
  *
  * Everything runs locally. Audio never leaves the device.
  *
@@ -17,17 +22,20 @@
 var VerbaHesitationDetector = (function () {
     'use strict';
 
-    // Tuned on Whisper-aligned conversational speech (DisfluencySpeech validation split),
-    // favouring precision: a wrong buzz is worse than a missed one.
+    // Tuned on Whisper-aligned conversational speech (DisfluencySpeech validation split)
+    // and checked on the held-out test split, favouring precision: a wrong buzz is worse
+    // than a missed one.
     var DEFAULTS = {
-        minDuration: 0.30,      // seconds of steady voicing before a hesitation is reported
-        minEnergyDb: 16,        // dB above the running noise floor to count as speech
+        window: 0.30,           // seconds of steady voicing before a hesitation is reported
+        minEnergyDb: 10,        // dB above the noise floor to count as voiced sound
         maxAperiodicity: 0.35,  // YIN threshold: lower means more strictly periodic (voiced)
-        maxPitchStep: 1.0,      // semitones of pitch change allowed over 50 ms
-        maxPitchRange: 3.5,     // semitones of pitch range allowed over the whole sound
-        maxSpectralChange: 4.0, // mean dB change of the spectral envelope over 50 ms
-        minStableFraction: 0.75,// share of frames that must have a steady spectrum
-        glitchFrames: 5,        // consecutive bad frames tolerated inside one sound
+        maxPitchRange: 4.5,     // semitones of pitch range allowed inside the window
+        maxPitchStep: 1.5,      // semitones of pitch change allowed over 50 ms
+        maxPitchJump: 3,        // a bigger jump between two frames is a pitch-tracking error
+        maxVowelChange: 4,      // cepstral distance (dB) allowed over 50 ms
+        maxVowelDrift: 5,       // cepstral distance (dB) allowed from start to end of the window
+        minStableFraction: 0.9, // share of frames in the window that must be steady
+        glitchFrames: 3,        // consecutive unvoiced frames tolerated inside one sound
         minF0: 70,
         maxF0: 420,
         // Pauses: silence between two stretches of speech.
@@ -36,36 +44,10 @@ var VerbaHesitationDetector = (function () {
         minPause: 0.5           // seconds of silence reported as a pause
     };
 
-    function nextPow2(n) { var p = 1; while (p < n) p <<= 1; return p; }
-
-    // In-place radix-2 FFT.
-    function fft(re, im) {
-        var n = re.length, i, j, k, len, half, step, ang, wr, wi, tr, ti, cr, ci, t;
-        for (i = 1, j = 0; i < n; i++) {
-            var bit = n >> 1;
-            for (; j & bit; bit >>= 1) j ^= bit;
-            j ^= bit;
-            if (i < j) { t = re[i]; re[i] = re[j]; re[j] = t; t = im[i]; im[i] = im[j]; im[j] = t; }
-        }
-        for (len = 2; len <= n; len <<= 1) {
-            half = len >> 1;
-            ang = -2 * Math.PI / len;
-            step = { r: Math.cos(ang), i: Math.sin(ang) };
-            for (i = 0; i < n; i += len) {
-                wr = 1; wi = 0;
-                for (k = 0; k < half; k++) {
-                    var a = i + k, b = a + half;
-                    tr = re[b] * wr - im[b] * wi;
-                    ti = re[b] * wi + im[b] * wr;
-                    re[b] = re[a] - tr; im[b] = im[a] - ti;
-                    re[a] += tr; im[a] += ti;
-                    cr = wr * step.r - wi * step.i;
-                    ci = wr * step.i + wi * step.r;
-                    wr = cr; wi = ci;
-                }
-            }
-        }
-    }
+    var SILENT_DB = -100;       // frames this quiet are digital silence (a muted or starting stream)
+    var FLOOR_SECONDS = 6;      // the noise floor is a low percentile of this much recent audio
+    var LAG = 5;                // frames back (50 ms at a 10 ms hop) for the change measures
+    var NCEP = 12;              // cepstral coefficients used for vowel quality
 
     function Detector(sampleRate, options) {
         var o = {};
@@ -82,7 +64,7 @@ var VerbaHesitationDetector = (function () {
         this.yinW = Math.round(0.025 * this.fs);
         this.tauMin = Math.floor(this.fs / o.maxF0);
         this.tauMax = Math.ceil(this.fs / o.minF0);
-        this.bufLen = Math.max(this.win, this.yinW + this.tauMax + 2);
+        this.bufLen = Math.max(this.win + 1, this.yinW + this.tauMax + 2);
         this.ring = new Float32Array(this.bufLen);
         this.ringPos = 0;
         this.buf = new Float32Array(this.bufLen);
@@ -91,36 +73,35 @@ var VerbaHesitationDetector = (function () {
         this.decAcc = 0;
         this.decCount = 0;
 
-        this.nfft = nextPow2(this.win);
-        this.re = new Float64Array(this.nfft);
-        this.im = new Float64Array(this.nfft);
         this.hann = new Float64Array(this.win);
         for (var i = 0; i < this.win; i++) this.hann[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / (this.win - 1));
         this.yinD = new Float64Array(this.tauMax + 2);
+        this.order = Math.min(20, Math.round(this.fs / 1000) + 2);
+        this.xw = new Float64Array(this.win);
+        this.ac = new Float64Array(this.order + 1);
+        this.lpc = new Float64Array(this.order + 1);
+        this.lpcTmp = new Float64Array(this.order + 1);
 
-        // Log-spaced bands from 150 Hz to 4 kHz describe the spectral envelope.
-        var nb = 20, lo = 150, hi = Math.min(4000, this.fs / 2 - 100);
-        this.bandEdges = [];
-        for (var b = 0; b <= nb; b++) {
-            var f = lo * Math.pow(hi / lo, b / nb);
-            this.bandEdges.push(Math.max(1, Math.round(f * this.nfft / this.fs)));
-        }
-        this.history = [];      // spectral envelopes of recent frames
-        this.pitchHist = [];    // { st, voiced } of recent frames
-        this.histMax = 6;       // 6 frames = 50 ms back at a 10 ms hop
+        this.levels = new Float32Array(Math.round(FLOOR_SECONDS * 100));
+        this.levelCount = 0;
+        this.levelPos = 0;
+        this.noiseDb = null;    // unknown until a frame that is not digital silence arrives
 
-        this.noiseDb = null;
         this.frames = 0;
         this.time = 0;          // seconds of audio processed
+        this.recent = [];       // cepstra of the last LAG + 1 frames
+        this.run = null;
         this.resetRun();
         this.onDetect = null;
         this.onPause = null;    // called with the pause length in seconds when speech resumes
+        this.onLevel = null;    // called every 250 ms with the loudest frame (dBFS) and the noise floor
+        this.levelMax = -Infinity;
         this.heardSpeech = false;
         this.silentFrames = 0;
     }
 
     Detector.prototype.resetRun = function () {
-        this.run = { len: 0, stable: 0, bad: 0, stMin: Infinity, stMax: -Infinity, emitted: false };
+        this.run = { frames: [], bad: 0, lastSt: null, emitted: false };
     };
 
     // Feed any number of samples (Float32Array or array) at the original sample rate.
@@ -148,22 +129,43 @@ var VerbaHesitationDetector = (function () {
         }
     };
 
-    // Measure one 10 ms frame: loudness, pitch, periodicity, and spectral change.
+    // Noise floor: the 5th percentile of the last few seconds, ignoring digital silence,
+    // so a stream that starts with zeros (common while a microphone wakes up) or a burst
+    // of loud speech cannot leave it stuck too low or too high.
+    Detector.prototype.updateFloor = function (db) {
+        if (db <= SILENT_DB) return;
+        var lv = this.levels;
+        lv[this.levelPos] = db;
+        this.levelPos = (this.levelPos + 1) % lv.length;
+        if (this.levelCount < lv.length) this.levelCount++;
+        if (this.noiseDb === null || this.frames % 10 === 0) {
+            var sorted = Array.prototype.slice.call(lv.subarray(0, this.levelCount)).sort(function (a, b) { return a - b; });
+            this.noiseDb = sorted[Math.floor(this.levelCount * 0.05)];
+        } else if (db < this.noiseDb) {
+            this.noiseDb = db;
+        }
+    };
+
+    // Measure one 10 ms frame: loudness, pitch, periodicity, and vowel quality.
     Detector.prototype.analyze = function () {
-        var buf = this.buf, n = this.bufLen, i;
+        var buf = this.buf, n = this.bufLen, i, j, k;
         this.frames++;
         this.time = this.frames * this.hop / this.fs;
 
         var start = n - this.win, sum = 0;
         for (i = start; i < n; i++) sum += buf[i] * buf[i];
         var db = 10 * Math.log10(sum / this.win + 1e-12);
-        if (this.noiseDb === null) this.noiseDb = db;
-        if (db < this.noiseDb) this.noiseDb = 0.7 * this.noiseDb + 0.3 * db;
-        else this.noiseDb += 0.004; // slow rise: about 0.4 dB per second
+        this.updateFloor(db);
+
+        if (db > this.levelMax) this.levelMax = db;
+        if (this.frames % 25 === 0) {
+            if (this.onLevel) this.onLevel(this.levelMax, this.noiseDb);
+            this.levelMax = -Infinity;
+        }
 
         // Pitch by YIN (de Cheveigné & Kawahara, 2002).
         var W = this.yinW, tauMax = this.tauMax, d = this.yinD;
-        var base = n - W - tauMax - 1, tau, j, acc, diff;
+        var base = n - W - tauMax - 1, tau, acc, diff;
         var running = 0, best = -1, bestVal = 1e9;
         d[0] = 1;
         for (tau = 1; tau <= tauMax; tau++) {
@@ -193,38 +195,63 @@ var VerbaHesitationDetector = (function () {
             f0 = this.fs / t;
         }
 
-        // Spectral envelope: log energies in log-spaced bands.
-        var win = this.win, re = this.re, im = this.im;
-        for (i = 0; i < this.nfft; i++) {
-            re[i] = i < win ? buf[start + i] * this.hann[i] : 0;
-            im[i] = 0;
+        // Vowel quality: LPC cepstrum of the pre-emphasised, windowed frame.
+        var win = this.win, xw = this.xw, ord = this.order, ac = this.ac, a = this.lpc, tmp = this.lpcTmp;
+        for (i = 0; i < win; i++) xw[i] = (buf[start + i] - 0.97 * buf[start + i - 1]) * this.hann[i];
+        for (k = 0; k <= ord; k++) {
+            var s = 0;
+            for (i = k; i < win; i++) s += xw[i] * xw[i - k];
+            ac[k] = s;
         }
-        fft(re, im);
-        var edges = this.bandEdges, bands = new Float64Array(edges.length - 1), bI;
-        for (bI = 0; bI < bands.length; bI++) {
-            var e = 0;
-            for (i = edges[bI]; i < Math.max(edges[bI] + 1, edges[bI + 1]); i++) e += re[i] * re[i] + im[i] * im[i];
-            bands[bI] = 10 * Math.log10(e + 1e-12);
+        var cep = new Float64Array(NCEP + 1);
+        if (ac[0] > 1e-10) {
+            ac[0] *= 1.0001;    // a touch of white noise keeps the recursion stable
+            for (i = 0; i <= ord; i++) a[i] = 0;
+            a[0] = 1;
+            var err = ac[0];
+            for (i = 1; i <= ord; i++) {
+                var sacc = ac[i];
+                for (j = 1; j < i; j++) sacc += a[j] * ac[i - j];
+                var refl = -sacc / err;
+                for (j = 0; j <= ord; j++) tmp[j] = a[j];
+                for (j = 1; j < i; j++) a[j] = tmp[j] + refl * tmp[i - j];
+                a[i] = refl;
+                err *= (1 - refl * refl);
+                if (err <= 0) break;
+            }
+            for (var m = 1; m <= NCEP; m++) {
+                var c = m <= ord ? -a[m] : 0;
+                for (k = Math.max(1, m - ord); k < m; k++) c -= (k / m) * cep[k] * a[m - k];
+                cep[m] = c;
+            }
         }
-        var hist = this.history, specChange = Infinity;
-        if (hist.length >= this.histMax - 1) {
-            var s = 0, past = hist[0];
-            for (bI = 0; bI < bands.length; bI++) s += Math.abs(bands[bI] - past[bI]);
-            specChange = s / bands.length;
-        }
-        hist.push(bands);
-        if (hist.length > this.histMax - 1) hist.shift();
+        var recent = this.recent;
+        recent.push(cep);
+        if (recent.length > LAG + 1) recent.shift();
+        var vowelChange = recent.length === LAG + 1 ? cepDistance(cep, recent[0]) : Infinity;
 
-        var frame = { t: this.time, db: db, noiseDb: this.noiseDb, ap: bestVal, f0: f0, specChange: specChange };
+        var frame = { t: this.time, db: db, noiseDb: this.noiseDb, ap: bestVal, f0: f0, cep: cep, vowelChange: vowelChange };
         this.trackPause(frame);
         this.decide(frame);
     };
 
+    // Distance between two spectral envelopes, in dB.
+    function cepDistance(x, y) {
+        var s = 0;
+        for (var i = 1; i <= NCEP; i++) { var dd = x[i] - y[i]; s += dd * dd; }
+        return 4.3429 * Math.sqrt(2 * s);
+    }
+
     // Report each silence between two stretches of speech once speech resumes.
     Detector.prototype.trackPause = function (fr) {
         var o = this.opts;
+        if (fr.noiseDb === null || fr.db <= SILENT_DB) {
+            // Digital silence: nothing is arriving from the microphone, so it is silent.
+            if (this.heardSpeech) this.silentFrames++;
+            return;
+        }
         var above = fr.db - fr.noiseDb;
-        if (above >= o.pauseSpeechDb && fr.db > -70) {
+        if (above >= o.pauseSpeechDb && fr.db > -85) {
             var secs = this.silentFrames * this.hop / this.fs;
             if (this.heardSpeech && secs >= o.minPause && this.onPause) this.onPause(secs, fr.t);
             this.heardSpeech = true;
@@ -240,36 +267,42 @@ var VerbaHesitationDetector = (function () {
 
     // Decide, frame by frame, whether a held hesitation sound is in progress.
     Detector.prototype.decide = function (fr) {
-        var o = this.opts;
-        var speech = fr.db > fr.noiseDb + o.minEnergyDb && fr.db > -70;
-        var voiced = speech && fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < o.maxAperiodicity;
+        var o = this.opts, run = this.run, frames = run.frames;
+        var voiced = fr.noiseDb !== null && fr.db > fr.noiseDb + o.minEnergyDb && fr.db > -85 &&
+            fr.f0 >= o.minF0 && fr.f0 <= o.maxF0 && fr.ap < o.maxAperiodicity;
         var st = voiced ? 12 * Math.log(fr.f0 / 100) / Math.LN2 : 0;
-
-        var ph = this.pitchHist;
-        var past = ph.length >= this.histMax - 1 ? ph[0] : null;
-        var pitchStep = voiced && past && past.voiced ? Math.abs(st - past.st) : 0;
-        ph.push({ st: st, voiced: voiced });
-        if (ph.length > this.histMax - 1) ph.shift();
-
-        var run = this.run;
-        if (voiced && pitchStep <= o.maxPitchStep) {
-            var stMin = Math.min(run.stMin, st), stMax = Math.max(run.stMax, st);
-            if (run.len > 0 && stMax - stMin > o.maxPitchRange) {
-                this.resetRun();
-                run = this.run;
-                stMin = st; stMax = st;
-            }
-            run.len++;
-            run.bad = 0;
-            run.stMin = stMin; run.stMax = stMax;
-            if (fr.specChange <= o.maxSpectralChange) run.stable++;
-        } else {
-            if (run.len > 0 && ++run.bad > o.glitchFrames) this.resetRun();
+        if (voiced && run.lastSt !== null && Math.abs(st - run.lastSt) > o.maxPitchJump) {
+            // An octave error is folded back; any other sudden jump is a tracking glitch.
+            if (Math.abs(st - 12 - run.lastSt) <= o.maxPitchJump) st -= 12;
+            else if (Math.abs(st + 12 - run.lastSt) <= o.maxPitchJump) st += 12;
+            else voiced = false;
+        }
+        var W = Math.round(o.window * this.fs / this.hop);
+        if (!voiced) {
+            if (frames.length && ++run.bad > o.glitchFrames) this.resetRun();
+            else if (frames.length) { frames.push(null); if (frames.length > W) frames.shift(); }
             return;
         }
+        run.bad = 0;
+        run.lastSt = st;
+        var back = frames.length >= LAG ? frames[frames.length - LAG] : null;
+        var steady = fr.vowelChange <= o.maxVowelChange && !(back && Math.abs(back.st - st) > o.maxPitchStep);
+        frames.push({ st: st, steady: steady, cep: fr.cep });
+        if (frames.length > W) frames.shift();
+        if (run.emitted || frames.length < W) return;
 
-        var dur = run.len * this.hop / this.fs;
-        if (!run.emitted && dur >= o.minDuration && run.stable / run.len >= o.minStableFraction) {
+        var lo = Infinity, hi = -Infinity, nSteady = 0, first = null, last = null;
+        for (var i = 0; i < frames.length; i++) {
+            var e = frames[i];
+            if (!e) continue;
+            if (e.st < lo) lo = e.st;
+            if (e.st > hi) hi = e.st;
+            if (e.steady) nSteady++;
+            if (!first) first = e;
+            last = e;
+        }
+        if (hi - lo <= o.maxPitchRange && nSteady / W >= o.minStableFraction &&
+            cepDistance(first.cep, last.cep) <= o.maxVowelDrift) {
             run.emitted = true;
             if (this.onDetect) this.onDetect(fr.t);
         }
@@ -287,6 +320,7 @@ if (typeof registerProcessor === 'function') {
             this.detector = new VerbaHesitationDetector(sampleRate);
             this.detector.onDetect = function (t) { port.postMessage({ type: 'hesitation', t: t }); };
             this.detector.onPause = function (d) { port.postMessage({ type: 'pause', d: d }); };
+            this.detector.onLevel = function (db, floor) { port.postMessage({ type: 'level', db: db, floor: floor }); };
         }
         process(inputs) {
             var input = inputs[0];

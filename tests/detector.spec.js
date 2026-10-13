@@ -32,6 +32,28 @@ for (const rate of [48000, 44100, 16000]) {
             expect(run(S.concat([lead, S.vowel(rate, 0.8, t => 110 + 160 * t, S.SCHWA, 0.4)]), rate).hits).toEqual([]);
         });
 
+        test('a held "umm" (vowel into a hum) and an "uhh" with a falling pitch are each reported once', () => {
+            const umm = S.concat([S.vowel(rate, 0.3, 120, S.SCHWA, 0.4), S.vowel(rate, 0.6, 118, [250, 1000, 2300], 0.3)]);
+            const uhh = S.vowel(rate, 0.9, t => 135 - 30 * t, S.SCHWA, 0.4);
+            const x = S.addNoise(S.concat([lead, S.syllables(rate, 6), umm, S.syllables(rate, 6, 7), uhh, S.syllables(rate, 5, 9), S.silence(rate, 0.4)]), 0.0005, 5);
+            expect(run(x, rate).hits).toHaveLength(2);
+        });
+
+        test('a loud, clipped "UHH" spoken right into the microphone is reported', () => {
+            const loud = S.vowel(rate, 0.7, 150, S.SCHWA, 0.9).map(v => Math.max(-0.6, Math.min(0.6, v * 2)));
+            const x = S.addNoise(S.concat([lead, S.syllables(rate, 4), loud, S.syllables(rate, 4, 3), S.silence(rate, 0.4)]), 0.0005, 6);
+            expect(run(x, rate).hits).toHaveLength(1);
+        });
+
+        test('a stream that opens with digital silence still measures a 5-second pause', () => {
+            // Microphones often deliver exact zeros while they wake up; this once left the
+            // noise floor stuck so low that no silence was ever recognised.
+            const speech = S.addNoise(S.concat([S.syllables(rate, 6), S.silence(rate, 5), S.syllables(rate, 6, 5), S.silence(rate, 0.3)]), 0.0005, 4);
+            const { pauses } = run(S.concat([S.silence(rate, 1.2), speech]), rate);
+            expect(pauses).toHaveLength(1);
+            expect(pauses[0][0]).toBeCloseTo(5, 1);
+        });
+
         test('pauses of 0.5 s or more are measured; short gaps are not', () => {
             const x = S.addNoise(S.concat([lead, S.syllables(rate, 5), S.silence(rate, 0.8), S.syllables(rate, 5, 5),
                 S.silence(rate, 0.3), S.syllables(rate, 5, 9), S.silence(rate, 3.5), S.syllables(rate, 4, 13)]), 0.0005, 3);
@@ -43,10 +65,12 @@ for (const rate of [48000, 44100, 16000]) {
     });
 }
 
-test('in the browser, the AudioWorklet hears a held "uh" from the microphone', async ({ browserName }, testInfo) => {
+test('in the browser, the microphone analysis finds a held "uh" and a 5-second pause and marks both', async ({ browserName }, testInfo) => {
     test.skip(browserName !== 'chromium' || testInfo.project.name !== 'desktop');
     const rate = 48000;
-    const x = S.concat([S.silence(rate, 1.5), S.syllables(rate, 6), S.vowel(rate, 0.7, 115, S.SCHWA, 0.4), S.syllables(rate, 6, 7), S.silence(rate, 2)]);
+    const talk = S.addNoise(S.concat([S.syllables(rate, 6), S.vowel(rate, 0.7, 115, S.SCHWA, 0.4), S.syllables(rate, 6, 7),
+        S.silence(rate, 5), S.syllables(rate, 6, 9), S.silence(rate, 2)]), 0.0005, 8);
+    const x = S.concat([S.silence(rate, 1.5), talk]);
     const wav = testInfo.outputPath('uh.wav');
     fs.writeFileSync(wav, S.toWav(x, rate));
     const browser = await chromium.launch({
@@ -64,6 +88,10 @@ test('in the browser, the AudioWorklet hears a held "uh" from the microphone', a
         await page.click('#disclaimerConfirm');
         await expect.poll(() => page.evaluate(() => window.__hits), { timeout: 15000 }).toBeGreaterThan(0);
         await expect(page.locator('#count-fc-hes')).not.toHaveText('0');
+        await expect(page.locator('#transcript-final .tx-hes').first()).toBeVisible();
+        await expect(page.locator('#transcript-final .tx-pause').first()).toHaveText(/^[45]\.\d s pause$/, { timeout: 20000 });
+        expect(+(await page.locator('#pauseDisplay').textContent())).toBeGreaterThan(0);
+        await expect(page.locator('#micNote')).toBeHidden();
     } finally {
         await browser.close();
     }

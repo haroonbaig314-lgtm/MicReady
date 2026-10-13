@@ -99,6 +99,8 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
 .transcript-box { background: var(--d-surface-2); color: var(--d-text); border-color: var(--d-border); }
 .transcript-placeholder, .interim-text { color: var(--d-muted); }
 .filler-highlight { color: #fca5a5; }
+.tx-hes { color: #fca5a5; background: #2a1416; border-color: #7f1d1d; }
+.mic-note { background: #2a2210; color: #fcd34d; border-color: #6b5313; }
 @keyframes highlight-flash {
     0%   { background: rgba(248, 113, 113, 0.35); }
     100% { background: rgba(248, 113, 113, 0.12); }

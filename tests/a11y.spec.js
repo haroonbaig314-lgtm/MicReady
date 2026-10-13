@@ -32,8 +32,11 @@ for (const scheme of ['light', 'dark']) {
             await startSession(page);
             await page.evaluate(() => {
                 document.dispatchEvent(new CustomEvent('verba:hesitation'));
-                window.__emit('so I think we should like try it ', true);
+                window.__emit('so I think we should try it ', true);
             });
+            await page.waitForTimeout(2600);
+            await page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: 2.2 } })));
+            await expect(page.locator('#transcript-final .tx-pause')).toHaveCount(1);
             let results = await new AxeBuilder({ page }).include('#demo').withTags(TAGS).analyze();
             expect(summarize(results.violations)).toEqual([]);
             await page.locator('#endSessionBtn').click({ force: true });

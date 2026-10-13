@@ -28,16 +28,67 @@ test('sound-based "um" and a later transcript "um" count once', async ({ page })
     expect((await counters(page))['UM / UH']).toBe(2);
 });
 
-test('hedges get their own counter and highlight; "feel like" is not a filler', async ({ page }) => {
+test('hedges get their own counter and highlight', async ({ page }) => {
     await openDemo(page);
     await startSession(page);
     await say(page, 'I think we should just try it, kind of like a test. I feel like it works ');
     const c = await counters(page);
     expect(c.HEDGES).toBe(4);   // I think, just, kind of, I feel like
-    expect(c.LIKE).toBe(1);     // "kind of like" counts; "feel like" does not
     const hedges = await page.locator('#transcript-final .hedge-highlight').allTextContents();
     expect(hedges).toEqual(['I think', 'just', 'kind of', 'I feel like']);
-    await expect(page.locator('#transcript-final .filler-highlight')).toHaveText(['like']);
+});
+
+test('"like" is not treated as a filler: no counter, no highlight, no alert', async ({ page }) => {
+    await openDemo(page);
+    await startSession(page);
+    await say(page, 'I like to eat pizza and I like it a lot, like really ');
+    const c = await counters(page);
+    expect(Object.keys(c)).toEqual(['UM / UH', 'HEDGES']);
+    expect(c['UM / UH']).toBe(0);
+    await expect(page.locator('#transcript-final .filler-highlight')).toHaveCount(0);
+    await expect(page.locator('#filler-flash')).not.toHaveClass(/flash/);
+});
+
+test('a sound-detected "um" is marked in the transcript, even before any words', async ({ page }) => {
+    await openDemo(page);
+    await startSession(page);
+    await hesitation(page);
+    await expect(page.locator('#transcript-placeholder')).toBeHidden();
+    await expect(page.locator('#transcript-final .tx-hes')).toHaveText(['um / uh']);
+    await say(page, 'so I was thinking ', false);
+    await say(page, 'so I was thinking ');
+    await hesitation(page);
+    await say(page, 'we could start ');
+    await expect(page.locator('#transcript-final .tx-hes')).toHaveCount(2);
+    // The marker sits between the words it interrupted.
+    await expect(page.locator('#transcript-final')).toHaveText(/um \/ uh\s+so I was thinking\s+um \/ uh\s+we could start/);
+    expect((await counters(page))['UM / UH']).toBe(2);
+});
+
+test('when the transcript itself contains the "um", its sound marker is removed', async ({ page }) => {
+    await openDemo(page);
+    await startSession(page);
+    await hesitation(page);
+    await expect(page.locator('#transcript-final .tx-hes')).toHaveCount(1);
+    await say(page, 'so um I was thinking ');
+    await expect(page.locator('#transcript-final .tx-hes')).toHaveCount(0);
+    await expect(page.locator('#transcript-final .filler-highlight')).toHaveText(['um']);
+    expect((await counters(page))['UM / UH']).toBe(1);
+});
+
+test('a 5-second pause is counted and shown in the transcript; short ones are only counted', async ({ page }) => {
+    await openDemo(page, { clock: true });
+    await startSession(page);
+    await page.clock.runFor(8000);
+    await say(page, 'first I want to say this ');
+    await pause(page, 0.8);
+    await expect(page.locator('#pauseDisplay')).toHaveText('1');
+    await expect(page.locator('#transcript-final .tx-pause')).toHaveCount(0);
+    await pause(page, 5.04);
+    await say(page, 'and then I kept going ');
+    await expect(page.locator('#pauseDisplay')).toHaveText('2');
+    await expect(page.locator('#transcript-final .tx-pause')).toHaveText(['5.0 s pause']);
+    await expect(page.locator('#transcript-final')).toHaveText(/say this\s+5\.0 s pause\s+and then/);
 });
 
 test('transcript text is escaped, not rendered as HTML', async ({ page }) => {
@@ -117,10 +168,24 @@ test('demo controls work on a phone @mobile', async ({ page }) => {
     await openDemo(page);
     await startSession(page);
     await hesitation(page);
-    await say(page, 'like um this ');
+    await say(page, 'so um this ');
     const c = await counters(page);
     expect(c['UM / UH']).toBe(1);
-    expect(c.LIKE).toBe(1);
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test('when the browser gives the sound analysis only silence, a notice shows and pauses come from the transcript', async ({ page }) => {
+    // Some browsers mute this stream while speech recognition holds the microphone.
+    await page.addInitScript(() => {
+        navigator.mediaDevices.getUserMedia = async () => new AudioContext().createMediaStreamDestination().stream;
+    });
+    await openDemo(page);
+    await startSession(page);
+    await expect(page.locator('#micNote')).toBeVisible({ timeout: 10000 });
+    await say(page, 'here is my first point ');
+    await page.waitForTimeout(2300);
+    await say(page, 'and here is the next one ');
+    await expect(page.locator('#pauseDisplay')).toHaveText('1');
+    await expect(page.locator('#transcript-final .tx-pause')).toHaveText([/^2\.\d s pause$/]);
 });
