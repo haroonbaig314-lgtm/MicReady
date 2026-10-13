@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Requests | Verba</title>
+    <meta name="description" content="Request access to, correction of, or deletion of personal information Verba holds about you.">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="site.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { background: #ffffff; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            line-height: 1.7;
+            color: #2d3436;
+            background: #ffffff;
+        }
+        header.legal-header {
+            background: #1e3a2e;
+            padding: 1rem 1.5rem;
+        }
+        header.legal-header nav {
+            max-width: 860px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        header.legal-header a { color: #ffffff; text-decoration: none; font-weight: 600; }
+        header.legal-header .logo { font-weight: 800; letter-spacing: 2px; font-size: 1.2rem; }
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 4rem;
+        }
+        h1 { font-size: 2.2rem; line-height: 1.2; color: #1e3a2e; margin-bottom: 0.5rem; }
+        .effective { color: #4a5568; font-size: 0.92rem; margin-bottom: 2rem; }
+        h2 { font-size: 1.3rem; color: #1e3a2e; margin: 2.25rem 0 0.75rem; }
+        h3 { font-size: 1.05rem; color: #1e3a2e; margin: 1.5rem 0 0.5rem; }
+        p, li { font-size: 1rem; margin-bottom: 0.9rem; }
+        ul, ol { padding-left: 1.4rem; margin-bottom: 1rem; }
+        a { color: #1e5a3e; }
+        .summary {
+            background: #eef5f0;
+            border-left: 4px solid #2d5a44;
+            padding: 1rem 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+        .summary p:last-child { margin-bottom: 0; }
+        table { width: 100%; border-collapse: collapse; margin: 1rem 0 1.5rem; font-size: 0.93rem; }
+        th, td { border: 1px solid #d0d7d2; padding: 0.6rem 0.75rem; text-align: left; vertical-align: top; }
+        th { background: #eef5f0; color: #1e3a2e; }
+        .table-wrap { overflow-x: auto; }
+        form.request-form { display: grid; gap: 1.1rem; margin: 1.5rem 0; }
+        form.request-form label { font-weight: 600; color: #1e3a2e; display: block; margin-bottom: 0.3rem; }
+        form.request-form input, form.request-form select, form.request-form textarea {
+            width: 100%;
+            font: inherit;
+            padding: 0.6rem 0.75rem;
+            border: 1.5px solid #6b7c72;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #2d3436;
+        }
+        form.request-form textarea { min-height: 120px; resize: vertical; }
+        form.request-form .hint { font-size: 0.85rem; color: #4a5568; margin-top: 0.25rem; }
+        form.request-form fieldset { border: 0; }
+        form.request-form legend { font-weight: 600; color: #1e3a2e; margin-bottom: 0.3rem; }
+        .check-row { display: flex; gap: 0.6rem; align-items: flex-start; }
+        .check-row input { width: auto; margin-top: 0.35rem; }
+        .check-row label { font-weight: 400; color: #2d3436; }
+        .btn-submit {
+            justify-self: start;
+            min-height: 44px;
+            padding: 0.7rem 1.4rem;
+            border-radius: 10px;
+            border: 0;
+            background: #1e3a2e;
+            color: #ffffff;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .form-status { font-weight: 600; color: #1e3a2e; }
+        footer.site-footer {
+            background: #162d23;
+            color: #ffffff;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+        }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.75rem; }
+            main { padding: 2rem 16px 3rem; }
+        }
+    </style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+<header class="legal-header">
+    <nav aria-label="Primary">
+        <a href="index.html" class="logo">VERBA</a>
+        <a href="index.html">Back to home</a>
+    </nav>
+</header>
+<main id="main">
+    <h1>Data Requests</h1>
+    <p class="effective">Effective date: October 13, 2026. Last updated: October 13, 2026.</p>
+    <p>Use this page to ask Verba to delete, correct, or provide a copy of personal information we hold about you, or to unsubscribe you from email. In practice, the only personal information Verba holds is the email address of newsletter subscribers, any messages you have sent us, and any information you entered into the MVP. The browser demo stores nothing.</p>
+
+    <h2>How it works</h2>
+    <ol>
+        <li>Fill in the form below. Selecting "Prepare email" opens your email app with a message addressed to <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a>. Nothing is sent until you send that email yourself, and this page does not transmit or store what you type.</li>
+        <li>We may reply to confirm that you control the email address in the request. We will not ask for more information than we need to verify you.</li>
+        <li>We will complete the request, or explain why we cannot, within 45 days. You can appeal a decision as described in the <a href="privacy.html#appeals">Privacy Policy</a>.</li>
+    </ol>
+    <p>If the form does not open your email app, write to <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a> with the subject line "Privacy Request" and include the same details.</p>
+
+    <form class="request-form" id="requestForm" novalidate>
+        <div>
+            <label for="reqType">What would you like us to do?</label>
+            <select id="reqType" name="type" required>
+                <option value="Delete my personal information">Delete my personal information</option>
+                <option value="Send me a copy of my personal information">Send me a copy of my personal information</option>
+                <option value="Correct my personal information">Correct my personal information</option>
+                <option value="Unsubscribe me from all Verba emails">Unsubscribe me from all Verba emails</option>
+                <option value="Other privacy question">Other privacy question</option>
+            </select>
+        </div>
+        <div>
+            <label for="reqEmail">Email address associated with your information</label>
+            <input type="email" id="reqEmail" name="email" autocomplete="email" required aria-describedby="reqEmailHint">
+            <p class="hint" id="reqEmailHint">This is the address we will search for and contact.</p>
+        </div>
+        <div>
+            <label for="reqScope">Which parts of Verba? (optional)</label>
+            <select id="reqScope" name="scope">
+                <option value="All Verba services">All Verba services</option>
+                <option value="Newsletter">Newsletter</option>
+                <option value="Verba MVP">Verba MVP</option>
+                <option value="Emails I sent to Verba">Emails I sent to Verba</option>
+            </select>
+        </div>
+        <div>
+            <label for="reqDetails">Details (optional)</label>
+            <textarea id="reqDetails" name="details" maxlength="1500" aria-describedby="reqDetailsHint"></textarea>
+            <p class="hint" id="reqDetailsHint">For corrections, tell us what is wrong. Please do not include passwords or sensitive information.</p>
+        </div>
+        <div class="check-row">
+            <input type="checkbox" id="reqAgent" name="agent">
+            <label for="reqAgent">I am an authorized agent submitting this request for someone else, and I can provide their signed permission.</label>
+        </div>
+        <button type="submit" class="btn-submit">Prepare email</button>
+        <p class="form-status" id="reqStatus" role="status" aria-live="polite"></p>
+    </form>
+</main>
+<footer class="site-footer">
+    <ul class="legal-footer-links">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="refund.html">Refund Policy</a></li>
+        <li><a href="cookies.html">Cookie Policy</a></li>
+        <li><a href="data-request.html">Data Requests</a></li>
+        <li><button type="button" data-open-consent>Cookie Settings</button></li>
+    </ul>
+    <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
+    <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
+</footer>
+<script src="site.js"></script>
+<script>
+(function () {
+    var form = document.getElementById('requestForm');
+    var status = document.getElementById('reqStatus');
+    form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var email = document.getElementById('reqEmail');
+        if (!email.value || !email.checkValidity()) {
+            status.textContent = 'Please enter a valid email address.';
+            email.setAttribute('aria-invalid', 'true');
+            email.focus();
+            return;
+        }
+        email.removeAttribute('aria-invalid');
+        var type = document.getElementById('reqType').value;
+        var body = [
+            'Request: ' + type,
+            'Email address: ' + email.value,
+            'Scope: ' + document.getElementById('reqScope').value,
+            'Authorized agent: ' + (document.getElementById('reqAgent').checked ? 'Yes' : 'No'),
+            '',
+            'Details:',
+            document.getElementById('reqDetails').value || '(none)'
+        ].join('\n');
+        window.location.href = 'mailto:baig.h@northeastern.edu?subject=' + encodeURIComponent('Privacy Request: ' + type) + '&body=' + encodeURIComponent(body);
+        status.textContent = 'Your email app should now open with the request filled in. Send that email to submit it.';
+    });
+}());
+</script>
+</body>
+</html>

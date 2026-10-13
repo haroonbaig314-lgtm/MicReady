@@ -4,19 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verba - Your Pocket-Sized AI Speaking Coach</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="description" content="Practice public speaking with real-time feedback. Catch filler words and track your pace as you speak.">
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="site.css">
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Open Graph -->
     <meta property="og:title" content="Verba - Your Pocket-Sized AI Speaking Coach">
-    <meta property="og:description" content="Master public speaking with real-time AI feedback. Detect filler words, track your pace, and speak with confidence.">
+    <meta property="og:description" content="Practice public speaking with real-time feedback. Catch filler words and track your pace as you speak.">
     <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.png">
     <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/Verba/">
     <meta property="og:type" content="website">
+    <meta property="og:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <meta name="twitter:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Verba - Your Pocket-Sized AI Speaking Coach">
-    <meta name="twitter:description" content="Master public speaking with real-time AI feedback. Detect filler words, track your pace, and speak with confidence.">
+    <meta name="twitter:description" content="Practice public speaking with real-time feedback. Catch filler words and track your pace as you speak.">
     <meta name="twitter:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.png">
     <style>
         /* ── Reset & Base ── */
@@ -492,6 +494,7 @@
             border-top-color: #1e3a2e;
         }
         .feat-cell:hover .feat-tooltip,
+        .feat-cell:focus-within .feat-tooltip,
         .feat-cell.tip-open .feat-tooltip { opacity: 1; }
 
         /* ── Features ── */
@@ -559,7 +562,8 @@
                 transform: rotateY(180deg);
             }
         }
-        .feature-flip.flipped .feature-card-inner {
+        .feature-flip.flipped .feature-card-inner,
+        .feature-flip:focus-visible .feature-card-inner {
             transform: rotateY(180deg);
         }
         /* Front face: existing .feature-card styles apply; fix positioning */
@@ -602,7 +606,7 @@
         .feature-back h4 {
             font-size: 1rem;
             font-weight: 700;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.8);
             text-transform: uppercase;
             letter-spacing: 1.5px;
             margin-bottom: 0.75rem;
@@ -617,7 +621,7 @@
             margin-top: auto;
             padding-top: 1rem;
             font-size: 0.65rem;
-            color: rgba(255,255,255,0.35);
+            color: rgba(255,255,255,0.8);
             letter-spacing: 0.05em;
             text-align: center;
             display: none;
@@ -627,7 +631,7 @@
         }
         .flip-hint {
             font-size: 0.68rem;
-            color: rgba(130,130,130,0.75);
+            color: #5f6b66;
             text-align: center;
             margin-top: auto;
             padding-top: 0.5rem;
@@ -638,7 +642,8 @@
             @media (hover: hover) and (pointer: fine) {
                 .feature-flip:hover .feature-card-inner { transform: none; }
             }
-            .feature-flip.flipped .feature-card-inner { transform: none; }
+            .feature-flip.flipped .feature-card-inner,
+            .feature-flip:focus-visible .feature-card-inner { transform: none; }
             .feature-back {
                 transform: none;
                 opacity: 0;
@@ -655,8 +660,10 @@
                 .feature-flip:hover .feature-back  { opacity: 1; }
                 .feature-flip:hover .feature-front { opacity: 0; }
             }
-            .feature-flip.flipped .feature-back  { opacity: 1; }
-            .feature-flip.flipped .feature-front { opacity: 0; }
+            .feature-flip.flipped .feature-back,
+            .feature-flip:focus-visible .feature-back  { opacity: 1; }
+            .feature-flip.flipped .feature-front,
+            .feature-flip:focus-visible .feature-front { opacity: 0; }
         }
         @media (max-width: 768px) {
             .flip-hint { font-size: 0; }
@@ -999,6 +1006,31 @@
         }
         .disclaimer-footer {
             padding: 0 1.5rem 1.5rem;
+            display: flex;
+            flex-direction: column-reverse;
+            gap: 0.6rem;
+        }
+        .disclaimer-cancel {
+            width: 100%;
+            padding: 0.8rem;
+            background: #ffffff;
+            color: #1e3a2e;
+            border: 2px solid #2d5a44;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        .disclaimer-body a { color: #1e3a2e; font-weight: 600; }
+        .disclaimer-body p + p { margin-top: 0.75rem; }
+        .comparison-footnote {
+            max-width: 760px;
+            margin: 1.5rem auto 0;
+            font-size: 0.82rem;
+            line-height: 1.6;
+            color: #4a5568;
+            text-align: center;
         }
         .disclaimer-confirm {
             width: 100%;
@@ -1144,7 +1176,7 @@
             font-weight: 800;
             line-height: 1;
             transition: color 0.4s;
-            color: #9ca3af;
+            color: #6b7280;
         }
         .words-value {
             font-size: 2.4rem;
@@ -1154,7 +1186,7 @@
         }
         .stat-label {
             font-size: 0.68rem;
-            color: #9ca3af;
+            color: #6b7280;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 600;
@@ -1218,8 +1250,8 @@
             margin-bottom: 1.3rem;
             box-shadow: inset 0 1px 4px rgba(0,0,0,0.03);
         }
-        .transcript-placeholder { color: #9ca3af; }
-        .interim-text { color: #adb5bd; }
+        .transcript-placeholder { color: #6b7280; }
+        .interim-text { color: #6b7280; font-style: italic; }
         .filler-highlight {
             color: #dc2626;
             font-weight: 700;
@@ -1283,7 +1315,7 @@
         .lang-selector-label {
             display: block;
             font-size: 0.75rem;
-            color: #9ca3af;
+            color: #6b7280;
             font-weight: 500;
             margin-bottom: 0.5rem;
             letter-spacing: 0.3px;
@@ -1310,6 +1342,7 @@
             min-width: 168px;
         }
         .lang-select:focus { border-color: #2d5a44; }
+        .lang-select:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
         .lang-select-arrow {
             position: absolute;
             right: 0.7rem;
@@ -1348,7 +1381,7 @@
         }
         .custom-word-optional {
             font-weight: 400;
-            color: #9ca3af;
+            color: #6b7280;
         }
         .custom-word-row {
             display: flex;
@@ -1369,8 +1402,9 @@
             transition: border-color 0.2s, opacity 0.2s;
             outline: none;
         }
-        .custom-word-input::placeholder { color: #9ca3af; }
+        .custom-word-input::placeholder { color: #6b7280; }
         .custom-word-input:focus { border-color: #2d5a44; }
+        .custom-word-input:focus-visible { outline: 3px solid #2563eb; outline-offset: 2px; }
         .custom-word-btn {
             flex-shrink: 0;
             min-height: 44px;
@@ -1642,7 +1676,7 @@
             position: relative;
         }
         thead .highlight-col::before {
-            content: 'BEST CHOICE';
+            content: 'FREE IN BETA';
             position: absolute;
             top: 0.55rem; left: 50%;
             transform: translateX(-50%);
@@ -1658,8 +1692,8 @@
         }
         .checkmark { color: #2d5a44; font-size: 1.05rem; font-weight: 700; }
         .highlight-col .checkmark { color: #2d5a44; }
-        .cross { color: #b0b0b0; font-size: 1.05rem; }
-        .neutral { color: #b0b0b0; font-size: 1.05rem; }
+        .cross { color: #6b7280; font-size: 1.05rem; }
+        .neutral { color: #6b7280; font-size: 1.05rem; }
 
         /* ── Testimonials ── */
         .testimonials {
@@ -1708,7 +1742,35 @@
             animation: scrollLeft 32s linear infinite;
             width: fit-content;
         }
-        .testimonials-track:hover { animation-play-state: paused; }
+        .testimonials-track:hover,
+        .testimonials-track:focus-within,
+        .testimonials-track.paused { animation-play-state: paused; }
+        @media (prefers-reduced-motion: reduce) {
+            .testimonials-track { animation: none; }
+            .testimonials-scroll-wrapper { overflow-x: auto; }
+        }
+        .marquee-toggle {
+            display: block;
+            margin: 1.25rem auto 0;
+            min-height: 44px;
+            padding: 0.5rem 1.1rem;
+            border-radius: 10px;
+            border: 2px solid #1e3a2e;
+            background: #ffffff;
+            color: #1e3a2e;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .testimonials-note {
+            max-width: 720px;
+            margin: 1rem auto 0;
+            padding: 0 1.5rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #4a5568;
+        }
         @keyframes scrollLeft {
             0%   { transform: translateX(0); }
             100% { transform: translateX(-50%); }
@@ -1826,7 +1888,7 @@
         .pricing-note {
             margin-top: 1.75rem;
             font-size: 0.9rem;
-            color: rgba(255,255,255,0.55);
+            color: rgba(255,255,255,0.88);
             position: relative; z-index: 1;
         }
 
@@ -2163,11 +2225,12 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="page-sweep" aria-hidden="true"></div>
 <noscript><style>#page-sweep { display: none; }</style></noscript>
 
 <!-- Screen flash overlay (filler detection) -->
-<div id="filler-flash"></div>
+<div id="filler-flash" aria-hidden="true"></div>
 
 <!-- Disclaimer Modal (shown on first mic click) -->
 <div class="disclaimer-overlay" id="disclaimerOverlay" role="dialog" aria-modal="true" aria-labelledby="disclaimerTitle">
@@ -2178,17 +2241,19 @@
         <div class="disclaimer-body">
             <p>Filler word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. On mobile or in Safari, words like "um" and "uh" may not always be detected since some browsers filter out non-words automatically.</p>
             <p>For the best experience, use Chrome on a desktop or laptop.</p>
+            <p><strong>Your privacy:</strong> the demo uses your microphone and your browser's built-in speech recognition. Verba does not record, save, or send your audio or transcript anywhere. Your browser provider (for example Google in Chrome, Microsoft in Edge, or Apple in Safari) may process the audio on its servers to convert it to text. Details are in our <a href="privacy.html#what-we-collect">Privacy Policy</a>.</p>
         </div>
         <div class="disclaimer-footer">
-            <button class="disclaimer-confirm" id="disclaimerConfirm">Got it, let's go</button>
+            <button class="disclaimer-cancel" id="disclaimerCancel" type="button">Not now</button>
+            <button class="disclaimer-confirm" id="disclaimerConfirm" type="button">I understand, start the demo</button>
         </div>
     </div>
 </div>
 
 <!-- Session Summary Modal -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
     <div class="modal-card">
-        <h3>Session Summary</h3>
+        <h3 id="summaryTitle">Session Summary</h3>
         <div class="score-display">
             <div class="score-value" id="scoreValue">--</div>
             <div class="score-label" id="scoreLabel">&nbsp;</div>
@@ -2217,21 +2282,22 @@
 </div>
 
 <header>
-    <nav>
+    <nav aria-label="Primary">
         <a href="index.html" class="logo">VERBA <span class="beta-badge">Beta</span></a>
         <div class="nav-links">
             <a href="future.html">Future</a>
-            <a href="https://www.instagram.com/verbaspeech/" target="_blank">Instagram</a>
+            <a href="https://www.instagram.com/verbaspeech/" target="_blank" rel="noopener">Instagram<span class="sr-only"> (opens in a new tab)</span></a>
         </div>
     </nav>
 </header>
 
+<main id="main">
 <section class="hero">
     <div class="hero-bg" aria-hidden="true"></div>
     <div class="hero-content">
         <h1>VERBA</h1>
         <p class="tagline">Your Pocket-Sized AI Speaking Coach</p>
-        <p class="hero-desc">Master public speaking with real-time AI feedback.</p>
+        <p class="hero-desc">Practice public speaking with real-time feedback.</p>
         <div class="filler-cycler">
             <span class="filler-label">Say goodbye to:</span>
             <div class="filler-word-wrap" id="fillerWrap">
@@ -2240,8 +2306,8 @@
             </div>
         </div>
         <div class="cta-buttons">
-            <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>Try the MVP</a>
-            <a href="https://www.instagram.com/verbaspeech/" class="btn btn-secondary" target="_blank">Follow @verbaspeech</a>
+            <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>Try the MVP<span class="sr-only"> (opens in a new tab)</span></a>
+            <a href="https://www.instagram.com/verbaspeech/" class="btn btn-secondary" target="_blank" rel="noopener">Follow @verbaspeech<span class="sr-only"> (opens in a new tab)</span></a>
         </div>
     </div>
     <!-- Mountain silhouettes — distant back range + dramatic front peaks -->
@@ -2273,7 +2339,7 @@
     <div class="problem-grid">
         <div class="problem-card" id="prob-card-0">
             <h3>Public Speaking Anxiety</h3>
-            <p>Lack of clarity and confidence are major barriers to effective communication. Most people struggle but have nowhere to turn for help. The <span class="strike-word" id="prob-strike-0">anxiety<span class="strike-line"></span></span> is real.</p>
+            <p>Lack of clarity and confidence are major barriers to effective communication. Many people struggle with it, and affordable practice help is hard to find. The <span class="strike-word" id="prob-strike-0">anxiety<span class="strike-line"></span></span> is real.</p>
             <p class="problem-solution" id="prob-sol-0">Verba builds your confidence</p>
         </div>
         <div class="problem-card" id="prob-card-1">
@@ -2283,7 +2349,7 @@
         </div>
         <div class="problem-card" id="prob-card-2">
             <h3>Existing Tools Fall Short</h3>
-            <p>Current solutions provide delayed or <span class="strike-word" id="prob-strike-2">fragmented feedback<span class="strike-line"></span></span>, missing the opportunity for immediate correction when it matters most.</p>
+            <p>Many tools give delayed or <span class="strike-word" id="prob-strike-2">fragmented feedback<span class="strike-line"></span></span>, after you have already finished speaking.</p>
             <p class="problem-solution" id="prob-sol-2">Verba coaches you instantly</p>
         </div>
     </div>
@@ -2297,13 +2363,13 @@
                 <div class="feature-card-inner">
                     <div class="feature-card feature-front">
                         <h3>Real-Time Feedback</h3>
-                        <p>Instant detection of filler words and pacing issues as you speak, with gentle haptic cues to help you self-correct.</p>
+                        <p>Detection of filler words and pacing issues as you speak, with a screen flash and, on supported phones, a vibration to help you self-correct.</p>
                         <span class="flip-hint">hover to learn more</span>
                     </div>
                     <div class="feature-back">
                         <span class="feature-back-num">01</span>
                         <h4>How it works</h4>
-                        <p>While you speak, Verba listens. The moment you say um, uh, or like, your phone vibrates and the screen flashes, so you catch it as it happens, not after.</p>
+                        <p>While you speak, Verba listens. When it hears um, uh, or like, the screen flashes and, on Android phones, the device vibrates, so you notice the habit while you are still speaking.</p>
                         <span class="flip-back-hint">tap to flip back</span>
                     </div>
                 </div>
@@ -2311,8 +2377,8 @@
             <div class="feature-flip">
                 <div class="feature-card-inner">
                     <div class="feature-card feature-front">
-                        <h3>Personalized Analytics</h3>
-                        <p>Track your progress over time with detailed insights on your speaking patterns and improvement areas.</p>
+                        <h3>Session Analytics</h3>
+                        <p>See your filler count, speaking pace, and areas to work on at the end of every session. Progress tracking over time is planned.</p>
                         <span class="flip-hint">hover to learn more</span>
                     </div>
                     <div class="feature-back">
@@ -2327,7 +2393,7 @@
                 <div class="feature-card-inner">
                     <div class="feature-card feature-front">
                         <h3>AI-Powered Coaching</h3>
-                        <p>Powered by AI to provide tailored feedback specific to your speaking style and goals.</p>
+                        <p>The full MVP uses AI to give feedback based on what you actually said.</p>
                         <span class="flip-hint">hover to learn more</span>
                     </div>
                     <div class="feature-back">
@@ -2357,13 +2423,13 @@
                 <div class="feature-card-inner">
                     <div class="feature-card feature-front">
                         <h3>Mobile-First Design</h3>
-                        <p>Practice anywhere, anytime. Verba fits in your pocket and works seamlessly on any mobile device.</p>
+                        <p>Practice anywhere. Verba runs in the mobile browser you already have, with no download required.</p>
                         <span class="flip-hint">hover to learn more</span>
                     </div>
                     <div class="feature-back">
                         <span class="feature-back-num">05</span>
                         <h4>Built for your phone</h4>
-                        <p>The mic button is thumb-friendly, the stats are readable at a glance, and the haptic buzz works on any Android or iPhone.</p>
+                        <p>The mic button is thumb-friendly and the stats are readable at a glance. Vibration works in Android browsers; iPhone browsers do not let web pages vibrate, so you get the screen flash instead.</p>
                         <span class="flip-back-hint">tap to flip back</span>
                     </div>
                 </div>
@@ -2372,13 +2438,13 @@
                 <div class="feature-card-inner">
                     <div class="feature-card feature-front">
                         <h3>Affordable Access</h3>
-                        <p>At just $6/month with a planned freemium model, get professional coaching at a fraction of traditional costs.</p>
+                        <p>Free right now. We plan to charge $6/month after launch, with a free tier for basic use.</p>
                         <span class="flip-hint">hover to learn more</span>
                     </div>
                     <div class="feature-back">
                         <span class="feature-back-num">06</span>
                         <h4>The difference</h4>
-                        <p>Most speaking coaches charge $100 an hour. We're building Verba to cost $6 a month, or free for basic use. Good feedback shouldn't be expensive.</p>
+                        <p>Private speaking coaches often charge $100 or more per session. We plan to price Verba at $6 a month, with a free tier for basic use. Good feedback shouldn't be expensive.</p>
                         <span class="flip-back-hint">tap to flip back</span>
                     </div>
                 </div>
@@ -2398,7 +2464,7 @@
                 <div class="hiw-circle">01</div>
                 <div class="hiw-step-content">
                     <div class="hiw-title">Open Verba</div>
-                    <p class="hiw-desc">Pull up Verba on any device. No download, no account, no setup. Select your language and you are ready to go.</p>
+                    <p class="hiw-desc">Open the demo on this page in a supported browser. No download, no account, no setup. Select your language and you are ready to go.</p>
                 </div>
             </div>
             <div class="hiw-step">
@@ -2485,7 +2551,7 @@
                     <div class="mic-viz-wrap">
                         <div class="mic-ring" id="micRing" aria-hidden="true"></div>
                         <button class="mic-button" id="micButton" aria-label="Start recording">
-                            <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <svg class="mic-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
                                 <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                                 <line x1="12" y1="19" x2="12" y2="23"/>
@@ -2513,17 +2579,17 @@
 <section class="comparison" id="pricing">
     <div class="comparison-inner">
         <h2>Why Choose Verba?</h2>
-        <p class="comparison-subtitle">See how Verba compares to traditional coaching and other apps</p>
+        <p class="comparison-subtitle">How Verba compares with common alternatives in general terms</p>
         <div class="verba-feature-card">
-            <h3>Why Verba Wins</h3>
+            <h3>What Verba Offers</h3>
             <ul class="verba-feature-list">
-                <li><span class="checkmark">&#10004;</span> Real-Time Feedback</li>
-                <li><span class="checkmark">&#10004;</span> Personalized Analytics</li>
-                <li><span class="checkmark">&#10004;</span> Cost Effective, just $6/month</li>
-                <li><span class="checkmark">&#10004;</span> Accessible 24/7</li>
-                <li><span class="checkmark">&#10004;</span> Multi-Language Support</li>
-                <li><span class="checkmark">&#10004;</span> Haptic Feedback</li>
-                <li><span class="checkmark">&#10004;</span> Only $6/month vs $100+ for coaching</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Real-Time Feedback</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Session Summaries</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Free during beta</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Accessible 24/7</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Multi-Language Support</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Vibration Alerts on Android</li>
+                <li><span class="checkmark" aria-hidden="true">&#10004;</span> Planned price of $6/month after launch</li>
             </ul>
         </div>
         <div class="comparison-table">
@@ -2539,70 +2605,70 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td class="feat-cell">Real-Time Feedback<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Verba detects filler words and pace issues the instant you speak.</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Real-Time Feedback<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Verba detects filler words and pace issues the instant you speak.</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Personalized Analytics<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Track your progress and speaking patterns over time.</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Session Analytics<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Filler count, pace, and a coaching note after each session.</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Cost Effective<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Professional coaching quality at a fraction of the price.</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td class="feat-cell"><span class="neutral">~</span><span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Varies widely &mdash; from $1.99 to $25/month</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Cost Effective<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Low or no cost compared with paid coaching.</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td class="feat-cell"><span class="neutral" aria-hidden="true">~</span><span class="sr-only">Varies</span><span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Varies widely by app and plan.</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Accessible 24/7<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Practice anytime, anywhere. No appointments needed.</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Accessible 24/7<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Practice anytime, anywhere. No appointments needed.</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Multi-Language Support<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Practice in English, Spanish, French, Mandarin, German, Japanese, Arabic, or Hindi.</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td><span class="checkmark">&#10004;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Multi-Language Support<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Practice in English, Spanish, French, Mandarin, German, Japanese, Arabic, Hindi, Korean, Italian, or Russian.</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td><span class="neutral" aria-hidden="true">~</span><span class="sr-only">Varies</span></td>
+                        <td><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Haptic Feedback<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Your phone vibrates when a filler word is detected, so you feel it instantly.</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td><span class="cross">&#10006;</span></td>
-                        <td class="highlight-col"><span class="checkmark">&#10004;</span></td>
+                        <td class="feat-cell">Haptic Feedback<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">On Android, your phone vibrates when a filler word is detected. iPhone browsers do not support web vibration.</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td><span class="neutral" aria-hidden="true">~</span><span class="sr-only">Varies</span></td>
+                        <td><span class="cross" aria-hidden="true">&#10006;</span><span class="sr-only">No</span></td>
+                        <td class="highlight-col"><span class="checkmark" aria-hidden="true">&#10004;</span><span class="sr-only">Yes</span></td>
                     </tr>
                     <tr>
-                        <td class="feat-cell">Monthly Price<span class="feat-info" aria-label="tooltip">i</span><span class="feat-tooltip">Verba plans to launch at just $6/month with a freemium option.</span></td>
+                        <td class="feat-cell">Monthly Price<span class="feat-info" tabindex="0" role="button" aria-label="More information">i</span><span class="feat-tooltip" role="tooltip">Verba is free during the beta. Planned price after launch: $6/month (USD) with a free tier. No payment is collected today.</span></td>
                         <td id="price-coaching">$100+</td>
-                        <td id="price-apps">$12-45</td>
+                        <td id="price-apps">Varies</td>
                         <td id="price-courses">$12+</td>
                         <td class="highlight-col" id="price-verba"><strong>$6</strong></td>
                     </tr>
                 </tbody>
             </table>
         </div>
+        <p class="comparison-footnote">Comparisons describe categories in general terms based on publicly available information as of October 2026. Individual products and coaches vary. Verba pricing is planned and subject to change; Verba is free during the beta.</p>
     </div>
 </section>
 
-<section class="testimonials">
+<section class="testimonials" aria-labelledby="testimonialsTitle">
     <div class="testimonials-container">
-        <h2>What People Are Saying</h2>
-        <p class="testimonials-subtitle">See what students and educators think about the Verba concept</p>
+        <h2 id="testimonialsTitle">What People Are Saying</h2>
+        <p class="testimonials-subtitle">Comments from students and educators who tried the MVP or reviewed the concept</p>
     </div>
     <div class="testimonials-scroll-wrapper">
         <div class="testimonials-track">
             <div class="testimonials-grid">
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"Most speakers don't realize what their voice is doing. Awareness is half the battle - once they hear it, they can change it."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">TA</div>
@@ -2613,7 +2679,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"An app that gives students structured practice and real-time cues could make public-speaking support far more accessible on campus."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">ME</div>
@@ -2624,7 +2689,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"I used it for practice, and seeing the errors I was making was really eye opening."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">DT</div>
@@ -2635,7 +2699,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"I would like a ping or notification every time I use a filler when I practice, although not all the time."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">DL</div>
@@ -2646,7 +2709,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"This is clearly a problem space."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">AG</div>
@@ -2657,7 +2719,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"As a person who stutters a lot, I love the idea of Verba and would be willing to try it out."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">JB</div>
@@ -2668,7 +2729,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"After testing out the MVP, I can see myself using this product to help me learn."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">KL</div>
@@ -2679,7 +2739,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"I tested it a couple of times, and would recommend for others to try as well!"</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">DL</div>
@@ -2692,7 +2751,6 @@
             </div>
             <div class="testimonials-grid" aria-hidden="true">
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"Most speakers don't realize what their voice is doing. Awareness is half the battle - once they hear it, they can change it."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">TA</div>
@@ -2703,7 +2761,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"An app that gives students structured practice and real-time cues could make public-speaking support far more accessible on campus."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">ME</div>
@@ -2714,7 +2771,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"I used it for practice, and seeing the errors I was making was really eye opening."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">DT</div>
@@ -2725,7 +2781,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"I would like a ping or notification every time I use a filler when I practice, although not all the time."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">DL</div>
@@ -2736,7 +2791,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"This is clearly a problem space."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">AG</div>
@@ -2747,7 +2801,6 @@
                     </div>
                 </div>
                 <div class="testimonial-card">
-                    <div class="testimonial-stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
                     <p class="testimonial-text">"As a person who stutters a lot, I love the idea of Verba and would be willing to try it out."</p>
                     <div class="testimonial-footer">
                         <div class="testimonial-avatar">JB</div>
@@ -2760,18 +2813,31 @@
             </div>
         </div>
     </div>
+    <p class="testimonials-note">Comments are from individual early testers and educators. Individual experiences vary, and comments about the concept are not reviews of a finished product.</p>
 </section>
 
 <section class="email-capture">
     <div class="email-capture-inner">
         <h2>Get Early Access</h2>
-        <p>Join students already using Verba. Be first to know when we launch.</p>
+        <p>Be the first to know when the full Verba app launches.</p>
         <div class="beehiiv-wrapper">
             <div class="beehiiv-card">
-                <script async src="https://subscribe-forms.beehiiv.com/embed.js"></script><iframe src="https://subscribe-forms.beehiiv.com/27967354-32d3-4765-a6e6-d813693a2ecf" class="beehiiv-embed" data-test-id="beehiiv-embed" frameborder="0" scrolling="no" style="width: 100%; height: 260px; margin: 0; border-radius: 25px 25px 25px 25px !important; background-color: transparent; box-shadow: none; max-width: 100%;"></iframe>
+                <div data-consent-embed
+                     data-src="https://subscribe-forms.beehiiv.com/27967354-32d3-4765-a6e6-d813693a2ecf"
+                     data-script="https://subscribe-forms.beehiiv.com/embed.js"
+                     data-title="Verba newsletter signup form (provided by beehiiv)"
+                     data-class="beehiiv-embed"
+                     data-style="width: 100%; height: 260px; margin: 0; border-radius: 25px; background-color: transparent; box-shadow: none; max-width: 100%;">
+                    <div class="embed-placeholder">
+                        <p class="embed-text">Our signup form is provided by beehiiv, which may set cookies. It loads only with your permission.</p>
+                        <button type="button" data-allow-embed>Load signup form</button>
+                        <a class="embed-alt" href="https://subscribe-forms.beehiiv.com/27967354-32d3-4765-a6e6-d813693a2ecf" target="_blank" rel="noopener">Open form in a new tab<span class="sr-only"> (opens in a new tab)</span></a>
+                    </div>
+                </div>
             </div>
         </div>
-        <p id="email-success" style="display:none;margin-top:1.25rem;font-size:1rem;font-weight:600;color:#4caf7d;text-align:center;z-index:1;position:relative;">You're on the list! We'll be in touch soon.</p>
+        <p id="email-success" role="status" style="display:none;margin-top:1.25rem;font-size:1rem;font-weight:600;color:#86efac;text-align:center;z-index:1;position:relative;">You're on the list! We'll be in touch soon.</p>
+        <p class="form-consent-note">By subscribing, you confirm you are at least 13 years old and agree to receive occasional product update emails from Verba. Every email includes an unsubscribe link, and you can unsubscribe at any time. We never sell your email address. See our <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Service</a>.</p>
     </div>
 </section>
 
@@ -2781,43 +2847,43 @@
         <p class="faq-subtitle">Everything you need to know about Verba.</p>
         <div class="faq-list">
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">Is Verba free to use?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">The browser demo on this page is completely free with no account needed. Our full MVP is also free to try right now. When we launch the full product we're planning $6 a month with a free tier so you can get started without paying anything.</div>
+                    <div class="faq-answer-inner">The browser demo on this page is completely free with no account needed. Our full MVP is also free to try right now, and we do not collect any payment details. When the full product launches, we plan to charge $6 a month (USD) with a free tier. Any price, taxes, and renewal terms will be shown before you are asked to pay. See our <a href="refund.html">Refund Policy</a>.</div>
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">Does it work on my phone?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">Yes. The browser demo works on Android in Chrome and on iPhone in Safari or Chrome. For the best experience with the live demo we recommend Chrome on desktop or Android. The full MVP linked above works on any mobile device.</div>
+                    <div class="faq-answer-inner">Yes. The browser demo works on Android in Chrome and on iPhone in Safari or Chrome. For the best experience with the live demo we recommend Chrome on desktop or Android. The full MVP linked above runs in your phone's web browser. Vibration alerts work on Android; iPhone browsers do not allow web pages to vibrate.</div>
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">How is this different from just recording myself?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">Recording yourself means watching a video after the fact to catch your mistakes. Verba catches them the moment they happen: your phone vibrates and the screen flashes the instant you say um, uh, or like. That real-time feedback is what actually breaks the habit.</div>
+                    <div class="faq-answer-inner">Recording yourself means watching a video after the fact to catch your mistakes. Verba flags them while you are speaking: the screen flashes and, on Android, your phone vibrates when you say um, uh, or like. Immediate feedback is designed to help you notice the habit in the moment.</div>
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">Does Verba store my voice or speech data?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">The browser demo processes everything locally in your browser, so nothing is sent to any server. Your speech never leaves your device when using the on-page demo.</div>
+                    <div class="faq-answer-inner">Verba does not record, save, or send your audio or transcript when you use the on-page demo. The demo relies on your browser's built-in speech recognition, and some browsers (including Chrome and Edge) send audio to their provider's servers to convert it to text. The full MVP sends the recordings you submit to OpenAI for transcription and analysis. See our <a href="privacy.html">Privacy Policy</a> for details, or make a <a href="data-request.html">data deletion request</a>.</div>
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">What languages does Verba support?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
@@ -2826,16 +2892,16 @@
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">When will the full app launch?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
                 <div class="faq-answer">
-                    <div class="faq-answer-inner">We don't have a fixed date yet. We're focused on building it right rather than building it fast. Join the waitlist above and you'll be the first to know.</div>
+                    <div class="faq-answer-inner">We don't have a fixed date yet. We're focused on building it right rather than building it fast. Join the newsletter above and you'll be the first to know.</div>
                 </div>
             </div>
             <div class="faq-item">
-                <div class="faq-question" role="button" aria-expanded="false">
+                <div class="faq-question" role="button" tabindex="0" aria-expanded="false">
                     <span class="faq-question-text">Can I track my own specific filler words?</span>
                     <span class="faq-icon" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg></span>
                 </div>
@@ -2849,16 +2915,29 @@
 
 <section class="final-cta">
     <h2>Ready to Speak with Confidence?</h2>
-    <p>Join hundreds of students and professionals who are transforming their communication skills with Verba. Start practicing today.</p>
+    <p>Try the free MVP and start practicing today.</p>
     <div class="cta-buttons">
-        <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>Try Verba Now</a>
+        <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>Try the Verba MVP<span class="sr-only"> (opens in a new tab)</span></a>
     </div>
-    <p class="pricing-note">Planned pricing: $6/month with freemium option</p>
+    <p class="pricing-note">Free during the beta. Planned pricing after launch: $6/month (USD) with a free tier. No payment is collected today.</p>
 </section>
 
+</main>
+
 <footer>
-    <p>&copy; 2025 Verba. Built by Haroon Baig.</p>
+    <p>Built by Haroon Baig.</p>
+    <ul class="legal-footer-links">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="refund.html">Refund Policy</a></li>
+        <li><a href="cookies.html">Cookie Policy</a></li>
+        <li><a href="data-request.html">Data Requests</a></li>
+        <li><button type="button" data-open-consent>Cookie Settings</button></li>
+    </ul>
+    <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
+    <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
 </footer>
+<script src="site.js"></script>
 
 <script>
 (function () {
@@ -3305,13 +3384,13 @@
     }
 
     // ── Recording control ──
-    var MIC_SVG_OFF = '<svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    var MIC_SVG_OFF = '<svg class="mic-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
         '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>' +
         '<path d="M19 10v2a7 7 0 0 1-14 0v-2"/>' +
         '<line x1="12" y1="19" x2="12" y2="23"/>' +
         '<line x1="8" y1="23" x2="16" y2="23"/></svg>';
 
-    var MIC_SVG_ON = '<svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">' +
+    var MIC_SVG_ON = '<svg class="mic-icon" aria-hidden="true" focusable="false" viewBox="0 0 24 24" fill="currentColor">' +
         '<rect x="6" y="4" width="4" height="16" rx="1"/>' +
         '<rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
 
@@ -3723,7 +3802,24 @@
     var confirmBtn = document.getElementById('disclaimerConfirm');
     if (!overlay || !confirmBtn) return;
 
-    function hide() { overlay.classList.remove('visible'); }
+    var cancelBtn  = document.getElementById('disclaimerCancel');
+    var returnFocus = null;
+
+    function hide() {
+        overlay.classList.remove('visible');
+        if (returnFocus && returnFocus.focus) returnFocus.focus();
+    }
+
+    if (cancelBtn) cancelBtn.addEventListener('click', hide);
+    overlay.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') { hide(); return; }
+        if (e.key !== 'Tab') return;
+        var f = overlay.querySelectorAll('a[href], button');
+        if (!f.length) return;
+        var first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
 
     confirmBtn.addEventListener('click', function () {
         try { localStorage.setItem('verba_disclaimer_seen', '1'); } catch (e) {}
@@ -3734,7 +3830,9 @@
     });
 
     window._verbaShowDisclaimer = function () {
+        returnFocus = document.activeElement;
         overlay.classList.add('visible');
+        setTimeout(function () { confirmBtn.focus(); }, 50);
     };
 }());
 </script>
@@ -3744,7 +3842,14 @@
     var items = Array.from(document.querySelectorAll('.faq-item'));
     if (!items.length) return;
     items.forEach(function (item) {
-        item.querySelector('.faq-question').addEventListener('click', function () {
+        var q = item.querySelector('.faq-question');
+        var a = item.querySelector('.faq-answer');
+        if (a && !a.id) { a.id = 'faq-answer-' + items.indexOf(item); }
+        if (a) { q.setAttribute('aria-controls', a.id); }
+        q.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); q.click(); }
+        });
+        q.addEventListener('click', function () {
             var isOpen = item.classList.contains('open');
             items.forEach(function (i) {
                 i.classList.remove('open');
@@ -3804,7 +3909,7 @@
     // Reduced-motion: show final values immediately, no animation
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         elCoaching.textContent = '$100+';
-        elApps.textContent     = '$12-45';
+        elApps.textContent     = 'Varies';
         elCourses.textContent  = '$12+';
         elVerba.innerHTML      = '<strong>$6</strong>';
         elVerba.classList.add('price-land');
@@ -3831,8 +3936,7 @@
     function runOthers() {
         var others = [
             { el: elCoaching, end: 100, suffix: '+' },
-            { el: elApps,     end: 45,  suffix: ''  },
-            { el: elCourses,  end: 12,  suffix: '+' },
+                        { el: elCourses,  end: 12,  suffix: '+' },
         ];
         var DURATION = 1500;
         var t0 = null;
@@ -3840,6 +3944,7 @@
         // Show "..." in Verba while others are counting
         elVerba.innerHTML = '<strong>...</strong>';
         elVerba.style.opacity = '1';
+        elApps.textContent = 'Varies';
 
         function tick(ts) {
             if (t0 === null) t0 = ts;
@@ -3857,7 +3962,7 @@
             } else {
                 // Lock final values with suffixes, then wait before Verba
                 elCoaching.textContent = '$100+';
-                elApps.textContent     = '$12-45';
+                elApps.textContent     = 'Varies';
                 elCourses.textContent  = '$12+';
                 setTimeout(runVerba, 400);
             }
@@ -4421,6 +4526,30 @@
 }());
 </script>
 <script>
+/* ── Feature cards: keyboard focusable (CSS :focus-within flips them) ── */
+(function () {
+    Array.prototype.forEach.call(document.querySelectorAll('.feature-flip'), function (card) {
+        card.setAttribute('tabindex', '0');
+    });
+}());
+/* ── Testimonials marquee: pause control (WCAG 2.2.2) ── */
+(function () {
+    var track = document.querySelector('.testimonials-track');
+    var wrapper = document.querySelector('.testimonials-scroll-wrapper');
+    if (!track || !wrapper) return;
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'marquee-toggle';
+    btn.setAttribute('aria-pressed', 'false');
+    btn.textContent = 'Pause scrolling';
+    btn.addEventListener('click', function () {
+        var paused = track.classList.toggle('paused');
+        btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
+        btn.textContent = paused ? 'Resume scrolling' : 'Pause scrolling';
+    });
+    wrapper.parentNode.insertBefore(btn, wrapper.nextSibling);
+}());
 /* ── Feature card flip: tap to flip on touch devices ── */
 (function () {
     if (!window.matchMedia('(hover: none)').matches) return; // desktop uses CSS :hover
