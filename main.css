@@ -429,6 +429,7 @@ nav {
     white-space: nowrap;
 }
 .feat-info {
+    position: relative;
     display: inline-block;
     width: 14px; height: 14px;
     line-height: 14px;
@@ -645,9 +646,13 @@ nav {
     .feature-flip:focus-visible .feature-front { opacity: 0; }
 }
 @media (max-width: 768px) {
-    .flip-hint { font-size: 0; }
-    .flip-hint::after { content: 'tap to learn more'; font-size: 0.68rem; }
-    .feature-flip { height: 340px; }
+    .flip-hint { font-size: 0; padding-top: 1rem; }
+    .flip-hint::after { content: 'tap to learn more'; font-size: 0.78rem; }
+    .flip-back-hint { font-size: 0.78rem; }
+    /* Each card is as tall as its longer side, not a fixed height */
+    .feature-flip { height: auto; }
+    .feature-card-inner { display: grid; height: auto; }
+    .feature-flip .feature-card, .feature-back { position: relative; inset: auto; grid-area: 1 / 1; }
 }
 
 /* ── Demo card animated gradient border ── */
@@ -1181,7 +1186,7 @@ nav {
 }
 .filler-counter-card.active .filler-counter-number { color: #dc2626; }
 .filler-counter-est {
-    font-size: 0.55rem;
+    font-size: 0.66rem;
     color: #636e72;
     margin-top: 0.1rem;
     white-space: nowrap;
@@ -2105,3 +2110,25 @@ footer p { margin-bottom: 0.5rem; opacity: 0.85; font-size: 0.9rem; }
     #page-sweep.reveal { animation-duration: 0.25s; }
     #page-sweep.cover  { animation-duration: 0.25s; }
 }
+
+/* ── Phones: readable small text, tap targets at least 44 px, a header that fits ── */
+@media (max-width: 768px) {
+    .nav-links a { display: inline-block; padding: 0.75rem 0.35rem; }
+    .logo { white-space: nowrap; }
+    .beta-badge { font-size: 0.66rem; padding: 0.22rem 0.5rem; }
+    .filler-label { font-size: 0.78rem; }
+    .stat-label { font-size: 0.72rem; letter-spacing: 0.6px; }
+    .filler-counter-label { font-size: 0.72rem; }
+    .filler-counter-est { font-size: 0.7rem; }
+    .lang-select { min-height: 44px; }
+    .browser-note { text-wrap: balance; }
+    /* the fades at the carousel's edges no longer cover the first card's words */
+    .testimonials-scroll-wrapper::before,
+    .testimonials-scroll-wrapper::after { width: 24px; }
+}
+@media (max-width: 380px) {
+    header { padding-left: 1rem; padding-right: 1rem; }
+    .logo { font-size: 1.5rem; letter-spacing: 2px; }
+    .beta-badge { margin-left: 0.4rem; }
+}
+.feat-info::before { content: ''; position: absolute; inset: -15px; }   /* 44 px touch area */

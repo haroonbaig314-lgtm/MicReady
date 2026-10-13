@@ -168,5 +168,6 @@ tbody tr:hover { background: var(--d-surface-2); }
     background: var(--d-surface-2); color: var(--d-text); border-color: #4a6355;
 }
 .legal .check-row label { color: var(--d-text); }
+.legal form.request-form .check-row input { accent-color: var(--d-accent); }
 .legal .form-status { color: var(--d-accent); }
 .legal .btn-submit { background: #2d5a44; color: #ffffff; }

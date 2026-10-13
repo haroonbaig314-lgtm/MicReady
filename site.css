@@ -178,3 +178,11 @@ summary:focus-visible,
 @media (max-width: 768px) {
     .theme-toggle { margin-left: 0.75rem; width: 36px; height: 36px; }
 }
+
+/* ── Phones: tap targets at least 44 px ── */
+@media (max-width: 768px) {
+    .theme-toggle { width: 44px; height: 44px; }
+    .legal-footer-links { gap: 0 1rem; }
+    .legal-footer-links a,
+    .legal-footer-links button { display: inline-block; padding: 0.75rem 0.15rem; }
+}
