@@ -1,0 +1,155 @@
+/* Shared styles: accessibility helpers, cookie consent banner, legal footer. */
+
+.skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -100px;
+    z-index: 10001;
+    background: #1e3a2e;
+    color: #ffffff;
+    padding: 0.75rem 1.1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    text-decoration: none;
+}
+.skip-link:focus { top: 1rem; }
+
+.sr-only {
+    position: absolute !important;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0;
+}
+
+/* Visible keyboard focus on every interactive element */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role="button"]:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+/* ── Cookie consent banner ── */
+.consent-banner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 10000;
+    max-width: 640px;
+    margin: 0 auto;
+    background: #ffffff;
+    color: #2d3436;
+    border: 1px solid #d0d7d2;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+    padding: 1.25rem 1.4rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+.consent-banner[hidden] { display: none; }
+.consent-banner h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1e3a2e;
+    margin: 0 0 0.4rem;
+    letter-spacing: 0;
+}
+.consent-banner p { margin: 0 0 1rem; color: #2d3436; }
+.consent-banner a { color: #1e3a2e; font-weight: 600; text-decoration: underline; }
+.consent-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+.consent-actions button {
+    flex: 1 1 160px;
+    min-height: 44px;
+    padding: 0.6rem 1rem;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid #1e3a2e;
+    background: #ffffff;
+    color: #1e3a2e;
+}
+/* Accept and reject carry equal visual weight (no nudging toward "accept"). */
+.consent-actions button:hover { background: #eef5f0; }
+
+/* ── Embed placeholder shown until third-party content is allowed ── */
+.embed-placeholder {
+    background: #ffffff;
+    color: #2d3436;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+.embed-placeholder p.embed-text { margin: 0 0 1rem; font-size: 0.95rem; color: #2d3436; }
+.embed-placeholder button,
+.embed-placeholder a.embed-alt {
+    display: inline-block;
+    min-height: 44px;
+    margin: 0.25rem;
+    padding: 0.6rem 1.1rem;
+    border-radius: 10px;
+    border: 2px solid #1e3a2e;
+    background: #1e3a2e;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+}
+.embed-placeholder a.embed-alt { background: #ffffff; color: #1e3a2e; }
+
+.form-consent-note {
+    max-width: 520px;
+    margin: 1rem auto 0;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: #ffffff;
+    opacity: 0.95;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+.form-consent-note a { color: #ffffff; text-decoration: underline; }
+
+/* ── Legal footer block ── */
+.legal-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem 1.25rem;
+    margin: 1.25rem 0 0.75rem;
+    padding: 0;
+    list-style: none;
+    font-size: 0.85rem;
+}
+.legal-footer-links a,
+.legal-footer-links button {
+    color: #ffffff;
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    padding: 0;
+    font: inherit;
+    cursor: pointer;
+}
+.business-details {
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: #ffffff;
+    opacity: 0.9;
+    max-width: 640px;
+    margin: 0 auto;
+}
+.business-details a { color: #ffffff; }

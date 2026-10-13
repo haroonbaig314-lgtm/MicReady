@@ -7,17 +7,18 @@
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <!-- Open Graph -->
     <meta property="og:title" content="Verba - Your Pocket-Sized AI Speaking Coach">
-    <meta property="og:description" content="Master public speaking with real-time AI feedback. Detect filler words, track your pace, and speak with confidence.">
+    <meta property="og:description" content="Practice public speaking with real-time feedback. Catch filler words and track your pace as you speak.">
     <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.png">
     <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/Verba/future.html">
     <meta property="og:type" content="website">
+    <meta property="og:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <meta name="twitter:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Verba - Your Pocket-Sized AI Speaking Coach">
-    <meta name="twitter:description" content="Master public speaking with real-time AI feedback. Detect filler words, track your pace, and speak with confidence.">
+    <meta name="twitter:description" content="Practice public speaking with real-time feedback. Catch filler words and track your pace as you speak.">
     <meta name="twitter:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.png">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="fonts/fonts.css">
+    <link rel="stylesheet" href="site.css">
     <style>
         * {
             margin: 0;
@@ -233,7 +234,7 @@
         .tl-label {
             text-align: center;
             font-size: 0.72rem;
-            color: rgba(255,255,255,0.6);
+            color: rgba(255,255,255,0.85);
             font-weight: 500;
             line-height: 1.45;
             overflow-wrap: anywhere;
@@ -289,7 +290,7 @@
         .tl-desc {
             display: block;
             font-size: 0.63rem;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.82);
             font-style: italic;
             line-height: 1.4;
             text-align: center;
@@ -824,25 +825,27 @@
 </head>
 <body>
 
+<a class="skip-link" href="#main">Skip to main content</a>
 <div id="page-sweep" aria-hidden="true"></div>
 <noscript><style>#page-sweep { display: none; }</style></noscript>
 
 <header>
-    <nav>
+    <nav aria-label="Primary">
         <a href="index.html" class="logo">VERBA <span class="beta-badge">Beta</span></a>
         <div class="nav-links">
             <a href="index.html">Home</a>
-            <a href="https://www.instagram.com/verbaspeech/" target="_blank">Instagram</a>
+            <a href="https://www.instagram.com/verbaspeech/" target="_blank" rel="noopener">Instagram<span class="sr-only"> (opens in a new tab)</span></a>
         </div>
     </nav>
 </header>
 
+<main id="main">
 <section class="future-section">
     <div class="future-container">
         <div class="future-header">
             <div class="coming-soon-badge">Our Vision</div>
             <h2>The Future of Verba</h2>
-            <p>We're building powerful new features to make Verba the ultimate AI speaking coach for everyone, everywhere.</p>
+            <p>These are features we plan to build. They are not available yet, and their scope, timing, and pricing may change.</p>
 
             <!-- Roadmap timeline -->
             <div class="roadmap-timeline" aria-label="Verba development roadmap">
@@ -936,22 +939,22 @@
                     <div class="preview-title">Featured Coach Packs</div>
                     <div class="marketplace-items">
                         <div class="marketplace-card">
-                            <div class="emoji">💼</div>
+                            <div class="emoji" aria-hidden="true">💼</div>
                             <div class="pack-name">Interview Pro</div>
                             <div class="pack-price">Pricing TBD</div>
                         </div>
                         <div class="marketplace-card">
-                            <div class="emoji">📊</div>
+                            <div class="emoji" aria-hidden="true">📊</div>
                             <div class="pack-name">Presentation Master</div>
                             <div class="pack-price">Pricing TBD</div>
                         </div>
                         <div class="marketplace-card">
-                            <div class="emoji">💰</div>
+                            <div class="emoji" aria-hidden="true">💰</div>
                             <div class="pack-name">Sales Pitch</div>
                             <div class="pack-price">Pricing TBD</div>
                         </div>
                         <div class="marketplace-card">
-                            <div class="emoji">🎤</div>
+                            <div class="emoji" aria-hidden="true">🎤</div>
                             <div class="pack-name">Public Speaking</div>
                             <div class="pack-price">Pricing TBD</div>
                         </div>
@@ -971,7 +974,7 @@
                     Structured curriculum with progressive lessons. Master one skill at a time with video tutorials, practice exercises, and milestone tracking. From beginner fundamentals to advanced techniques.
                 </p>
                 <div class="feature-preview">
-                    <div class="preview-title">Course Curriculum</div>
+                    <div class="preview-title">Course Curriculum (illustrative mockup)</div>
                     <div class="learning-modules">
                         <div class="module-item">
                             <div class="module-number">1</div>
@@ -1019,7 +1022,7 @@
                     Select a job type and Verba asks you real interview questions out loud. You answer naturally and Verba grades your response on filler word usage, speaking pace, and overall clarity. Built specifically for students preparing for internships, full-time roles, and competitive programs.
                 </p>
                 <div class="feature-preview">
-                    <div class="preview-title">Sample Session</div>
+                    <div class="preview-title">Sample Session (illustrative mockup)</div>
                     <div class="interview-q-row">
                         <div class="interview-q-badge">Q</div>
                         <div class="interview-q-text">Tell me about yourself</div>
@@ -1066,14 +1069,27 @@
     </div>
 </section>
 
+</main>
+
 <footer>
-    <p>&copy; 2025 Verba. Built by Haroon Baig.</p>
+    <p>Built by Haroon Baig.</p>
     <div class="footer-links">
         <a href="index.html">Home</a>
-        <a href="https://www.instagram.com/verbaspeech/" target="_blank">Instagram</a>
-        <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" target="_blank">Try MVP</a>
+        <a href="https://www.instagram.com/verbaspeech/" target="_blank" rel="noopener">Instagram<span class="sr-only"> (opens in a new tab)</span></a>
+        <a href="https://verba-mvp-c9fs.glide.page/dl/fd1519" target="_blank" rel="noopener">Try MVP<span class="sr-only"> (opens in a new tab)</span></a>
     </div>
+    <ul class="legal-footer-links">
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="refund.html">Refund Policy</a></li>
+        <li><a href="cookies.html">Cookie Policy</a></li>
+        <li><a href="data-request.html">Data Requests</a></li>
+        <li><button type="button" data-open-consent>Cookie Settings</button></li>
+    </ul>
+    <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
+    <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
 </footer>
+<script src="site.js"></script>
 
 <script>
 /* ── Page sweep transition ── */
