@@ -7,7 +7,7 @@
 var CACHE = 'verba-v1';
 var CORE = [
     './', 'index.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html',
-    'home.js', 'features.js', 'features.css', 'site.js', 'site.css', 'hesitation.js',
+    'home.js', 'features.js', 'features.css', 'dark.css', 'site.js', 'site.css', 'hesitation.js',
     'fonts/fonts.css', 'fonts/inter-latin-wght-normal.woff2', 'fonts/inter-latin-ext-wght-normal.woff2',
     'favicon.svg', 'hero-bg.webp', 'icons/icon-192.png', 'manifest.webmanifest'
 ];

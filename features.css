@@ -14,6 +14,17 @@
     --vf-hedge-bg: #fff8ef;
     --vf-hedge-border: #f2c48d;
     --vf-danger: #dc2626;
+    /* Live pace and score colors (set from home.js) */
+    --wpm-idle: #6b7280;
+    --wpm-slow: #3b82f6;
+    --wpm-ok: #b45309;
+    --wpm-ideal: #15803d;
+    --wpm-fast: #ef4444;
+    --score-1: #16a34a;
+    --score-2: #2d5a44;
+    --score-3: #d97706;
+    --score-4: #ea580c;
+    --score-5: #dc2626;
 }
 
 /* ── Session summary scrolls when it grows taller than the screen ── */

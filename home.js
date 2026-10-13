@@ -463,11 +463,11 @@
     }
 
     function scoreColor(score) {
-        if (score >= 90) return '#16a34a';
-        if (score >= 75) return '#2d5a44';
-        if (score >= 60) return '#d97706';
-        if (score >= 45) return '#ea580c';
-        return '#dc2626';
+        if (score >= 90) return 'var(--score-1)';
+        if (score >= 75) return 'var(--score-2)';
+        if (score >= 60) return 'var(--score-3)';
+        if (score >= 45) return 'var(--score-4)';
+        return 'var(--score-5)';
     }
 
     // ── Status dot ──
@@ -622,10 +622,11 @@
     }
 
     function wpmColor(wpm) {
-        if (wpm < 100) return '#3b82f6';   // blue  — too slow
-        if (wpm <= 130) return '#b45309';  // amber — acceptable
-        if (wpm <= 165) return '#15803d';  // green — ideal
-        return '#ef4444';                   // red   — too fast
+        // Colors are CSS variables so dark mode can supply its own readable shades.
+        if (wpm < 100) return 'var(--wpm-slow)';   // blue  — too slow
+        if (wpm <= 130) return 'var(--wpm-ok)';    // amber — acceptable
+        if (wpm <= 165) return 'var(--wpm-ideal)'; // green — ideal
+        return 'var(--wpm-fast)';                   // red   — too fast
     }
 
     function renderWPM() {
@@ -635,7 +636,7 @@
         wordsEl.textContent = wordCount(accumulatedTranscript);
         if (wpm === 0) {
             wpmEl.textContent = '--';
-            wpmEl.style.color = '#6b7280';
+            wpmEl.style.color = 'var(--wpm-idle)';
         } else {
             wpmEl.textContent = wpm;
             wpmEl.style.color = wpmColor(wpm);
@@ -675,8 +676,16 @@
         });
     }
 
-    function lockLangSelector()   { var w = document.getElementById('langSelectorWrap'); if (w) w.classList.add('locked'); }
-    function unlockLangSelector() { var w = document.getElementById('langSelectorWrap'); if (w) w.classList.remove('locked'); }
+    function lockLangSelector() {
+        var w = document.getElementById('langSelectorWrap');
+        if (w) w.classList.add('locked');
+        if (langSelectEl) langSelectEl.disabled = true;
+    }
+    function unlockLangSelector() {
+        var w = document.getElementById('langSelectorWrap');
+        if (w) w.classList.remove('locked');
+        if (langSelectEl) langSelectEl.disabled = false;
+    }
 
     function lockCustomWordInput() {
         var w = document.getElementById('customWordWrap');
@@ -720,7 +729,7 @@
         resetCounts();
         renderTimer();
         document.getElementById('wpmDisplay').textContent = '--';
-        document.getElementById('wpmDisplay').style.color = '#6b7280';
+        document.getElementById('wpmDisplay').style.color = 'var(--wpm-idle)';
         document.getElementById('wordsDisplay').textContent = '0';
         renderTranscript('', '');
         renderCounters();
@@ -821,7 +830,7 @@
 
         renderTimer();
         document.getElementById('wpmDisplay').textContent = '--';
-        document.getElementById('wpmDisplay').style.color = '#6b7280';
+        document.getElementById('wpmDisplay').style.color = 'var(--wpm-idle)';
         document.getElementById('wordsDisplay').textContent = '0';
         document.getElementById('buttonLabel').textContent = '';
         document.getElementById('endSessionBtn').style.display = 'none';
@@ -857,7 +866,7 @@
             wpmEl.style.color = wpmColor(avgWPM);
         } else {
             wpmEl.textContent = '--';
-            wpmEl.style.color = '#1e3a2e';
+            wpmEl.style.color = 'var(--vf-ink)';
         }
 
         document.getElementById('summaryPauses').textContent = pauseCount;
