@@ -165,7 +165,7 @@
     // Reduced-motion: show final values immediately, no animation
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         elCoaching.textContent = '$100+';
-        elApps.textContent     = 'Varies';
+        elApps.textContent     = '$10 to $45';
         elCourses.textContent  = '$12+';
         elVerba.innerHTML      = '<strong>$6</strong>';
         elVerba.classList.add('price-land');
@@ -192,7 +192,8 @@
     function runOthers() {
         var others = [
             { el: elCoaching, end: 100, suffix: '+' },
-                        { el: elCourses,  end: 12,  suffix: '+' },
+            { el: elApps,     end: 45,  from: 10 },     // a range: "$10 to $45"
+            { el: elCourses,  end: 12,  suffix: '+' }
         ];
         var DURATION = 1500;
         var t0 = null;
@@ -200,7 +201,6 @@
         // Show "..." in Verba while others are counting
         elVerba.innerHTML = '<strong>...</strong>';
         elVerba.style.opacity = '1';
-        elApps.textContent = 'Varies';
 
         function tick(ts) {
             if (t0 === null) t0 = ts;
@@ -210,7 +210,7 @@
 
             others.forEach(function (p) {
                 var val = Math.round(eased * p.end);
-                p.el.textContent = '$' + val + (progress >= 1 ? p.suffix : '');
+                p.el.textContent = p.from ? '$' + Math.round(eased * p.from) + ' to $' + val : '$' + val + (progress >= 1 ? p.suffix : '');
             });
 
             if (progress < 1) {
@@ -218,7 +218,7 @@
             } else {
                 // Lock final values with suffixes, then wait before Verba
                 elCoaching.textContent = '$100+';
-                elApps.textContent     = 'Varies';
+                elApps.textContent     = '$10 to $45';
                 elCourses.textContent  = '$12+';
                 setTimeout(runVerba, 400);
             }
