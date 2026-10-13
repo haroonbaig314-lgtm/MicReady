@@ -1854,26 +1854,10 @@
             animation: scrollLeft 32s linear infinite;
             width: fit-content;
         }
-        .testimonials-track:hover,
-        .testimonials-track:focus-within,
-        .testimonials-track.paused { animation-play-state: paused; }
+        .testimonials-track:focus-within { animation-play-state: paused; }
         @media (prefers-reduced-motion: reduce) {
             .testimonials-track { animation: none; }
             .testimonials-scroll-wrapper { overflow-x: auto; }
-        }
-        .marquee-toggle {
-            display: block;
-            margin: 1.25rem auto 0;
-            min-height: 44px;
-            padding: 0.5rem 1.1rem;
-            border-radius: 10px;
-            border: 2px solid #1e3a2e;
-            background: #ffffff;
-            color: #1e3a2e;
-            font-family: inherit;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
         }
         .testimonials-note {
             max-width: 720px;

@@ -1893,24 +1893,6 @@
         card.setAttribute('tabindex', '0');
     });
 }());
-/* ── Testimonials marquee: pause control (WCAG 2.2.2) ── */
-(function () {
-    var track = document.querySelector('.testimonials-track');
-    var wrapper = document.querySelector('.testimonials-scroll-wrapper');
-    if (!track || !wrapper) return;
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var btn = document.createElement('button');
-    btn.type = 'button';
-    btn.className = 'marquee-toggle';
-    btn.setAttribute('aria-pressed', 'false');
-    btn.textContent = 'Pause scrolling';
-    btn.addEventListener('click', function () {
-        var paused = track.classList.toggle('paused');
-        btn.setAttribute('aria-pressed', paused ? 'true' : 'false');
-        btn.textContent = paused ? 'Resume scrolling' : 'Pause scrolling';
-    });
-    wrapper.parentNode.insertBefore(btn, wrapper.nextSibling);
-}());
 /* ── Feature card flip: tap to flip on touch devices ── */
 (function () {
     if (!window.matchMedia('(hover: none)').matches) return; // desktop uses CSS :hover

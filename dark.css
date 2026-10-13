@@ -84,7 +84,6 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
 .testimonial-footer { border-color: var(--d-border); }
 .testimonials-scroll-wrapper::before { background: linear-gradient(to right, var(--d-bg), transparent); }
 .testimonials-scroll-wrapper::after { background: linear-gradient(to left, var(--d-bg), transparent); }
-.marquee-toggle { background: var(--d-surface); color: var(--d-accent); border-color: var(--d-accent); }
 
 .hiw-line { background: var(--d-border); }
 .hiw-circle { background: #2d5a44; }
