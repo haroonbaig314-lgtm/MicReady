@@ -1,4 +1,4 @@
-// Automated checks for the Verba site. Run with: npm test
+// Automated checks for the MicReady site. Run with: npm test
 const { defineConfig, devices } = require('@playwright/test');
 
 const PORT = 4173;

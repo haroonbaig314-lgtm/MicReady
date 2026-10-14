@@ -1,4 +1,4 @@
-/* Verba: computes voiceprints in the background so the page stays responsive.
+/* MicReady: computes voiceprints in the background so the page stays responsive.
  * Messages in:  { type: 'init', base }            load the runtime and the voice model
  *               { type: 'embed', id, samples }    16 kHz audio -> voiceprint
  * Messages out: { type: 'ready' } | { type: 'error', message } | { type: 'emb', id, v }

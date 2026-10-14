@@ -5,7 +5,7 @@ test('manifest is valid and its icons exist', async ({ request }) => {
     const res = await request.get('/manifest.webmanifest');
     expect(res.status()).toBe(200);
     const m = await res.json();
-    expect(m.short_name).toBe('Verba');
+    expect(m.short_name).toBe('MicReady');
     expect(m.display).toBe('standalone');
     expect(m.icons.some(i => i.sizes === '512x512' && i.purpose === 'maskable')).toBe(true);
     for (const icon of m.icons) {
@@ -23,7 +23,7 @@ test('service worker takes control and pages open offline', async ({ page, conte
     await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
     await context.setOffline(true);
     await page.goto('/privacy.html');
-    await expect(page).toHaveTitle('Privacy Policy | Verba');
+    await expect(page).toHaveTitle('Privacy Policy | MicReady');
     await page.goto('/index.html?sweep=1');
     await expect(page.locator('#micButton')).toBeVisible();
     await context.setOffline(false);

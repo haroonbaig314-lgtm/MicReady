@@ -8,7 +8,7 @@ for (const name of PAGES) {
         const res = await page.goto('/' + name);
         expect(res.status()).toBe(200);
         await rejectConsent(page);
-        await expect(page).toHaveTitle(/Verba/);
+        await expect(page).toHaveTitle(/MicReady/);
         await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.{40,}/);
         await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/haroonbaig314-lgtm\.github\.io\/Verba\//);
         await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
@@ -62,7 +62,7 @@ test('the home page has a lightweight demo and Try the MVP buttons that open the
     await expect(page.locator('a[href*="glide.page"]')).toHaveCount(0);
     await expect(page.locator('.demo-badge')).toHaveText('Lightweight Browser Demo');
     // The hero, the call to action under the demo, and the closing section all lead to the MVP.
-    const ctas = page.getByRole('link', { name: /^Try the (Verba )?MVP$/ });
+    const ctas = page.getByRole('link', { name: /^Try the (MicReady )?MVP$/ });
     await expect(ctas).toHaveCount(3);
     for (const href of await ctas.evaluateAll(els => els.map(e => e.getAttribute('href')))) expect(href).toBe('mvp.html');
     // The full tool's extras are not on the home page.

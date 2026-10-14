@@ -1,4 +1,4 @@
-/* Verba home page: animations and page interactions. The live demo is in demo.js.
+/* MicReady home page: animations and page interactions. The live demo is in demo.js.
    Loaded with defer. */
 
 // ── Scroll entrance animations (Intersection Observer) ──
@@ -198,7 +198,7 @@
         var DURATION = 1500;
         var t0 = null;
 
-        // Show "..." in Verba while others are counting
+        // Show "..." in MicReady while others are counting
         elVerba.innerHTML = '<strong>...</strong>';
         elVerba.style.opacity = '1';
 
@@ -216,7 +216,7 @@
             if (progress < 1) {
                 requestAnimationFrame(tick);
             } else {
-                // Lock final values with suffixes, then wait before Verba
+                // Lock final values with suffixes, then wait before MicReady
                 elCoaching.textContent = '$100+';
                 elApps.textContent     = '$10 to $45';
                 elCourses.textContent  = '$12+';
@@ -227,7 +227,7 @@
         requestAnimationFrame(tick);
     }
 
-    // ── Phase 2: fade in Verba cell (0.3s), then count $0→$6 over 3600ms ──
+    // ── Phase 2: fade in MicReady cell (0.3s), then count $0→$6 over 3600ms ──
     function runVerba() {
         var FADE_DURATION = 300;
         var COUNT_DURATION = 3600;

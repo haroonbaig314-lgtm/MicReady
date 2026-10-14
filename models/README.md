@@ -10,5 +10,5 @@ in the ONNX export published by the sherpa-onnx project
   dataset it was trained on, as stated in WeSpeaker's pretrained-model documentation.
   https://creativecommons.org/licenses/by/4.0/
 
-The file is unchanged. Verba downloads it only when a visitor turns on voice profiles, and runs it
+The file is unchanged. MicReady downloads it only when a visitor turns on voice profiles, and runs it
 in the visitor's browser.

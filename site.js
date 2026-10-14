@@ -1,9 +1,10 @@
-/* Verba: cookie and third-party content consent.
+/* MicReady: cookie and third-party content consent.
  *
  * The site sets no advertising or analytics cookies. The only optional item is the
  * beehiiv newsletter form, which is loaded from beehiiv's servers and may set its own
  * cookies. It loads only after the visitor allows it. The choice is stored in
- * localStorage under "verba_consent" ("accepted" or "rejected").
+ * localStorage under "verba_consent" ("accepted" or "rejected"). Storage keys, events and globals keep
+ * the verba prefix from the product's former name, so data saved before the rename still works.
  */
 (function () {
     var KEY = 'verba_consent';
@@ -60,7 +61,7 @@
         banner.hidden = true;
         banner.innerHTML =
             '<h2 id="consentTitle">Cookies and third-party content</h2>' +
-            '<p id="consentDesc">Verba uses no advertising or analytics cookies. Your browser\'s local storage remembers this choice and whether you have seen the demo notice. ' +
+            '<p id="consentDesc">MicReady uses no advertising or analytics cookies. Your browser\'s local storage remembers this choice and whether you have seen the demo notice. ' +
             'If you allow it, we also load our newsletter signup form from beehiiv, which may set its own cookies. ' +
             'See our <a href="cookies.html">Cookie Policy</a> and <a href="privacy.html">Privacy Policy</a>.</p>' +
             '<div class="consent-actions">' +

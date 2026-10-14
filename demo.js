@@ -1,4 +1,4 @@
-/* Verba live demo: speech recognition, filler and pause counting, the session summary,
+/* MicReady live demo: speech recognition, filler and pause counting, the session summary,
    the privacy notice, and the microphone analysis. Shared by the home page (lightweight
    demo) and the MVP page (full tool). Loaded with defer. */
 

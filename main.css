@@ -1,4 +1,4 @@
-/* Verba: page styles shared by the home page and the MVP page. */
+/* MicReady: page styles shared by the home page and the MVP page. */
 /* ── Reset & Base ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; background: #ffffff; }
@@ -183,7 +183,7 @@ nav {
 .logo {
     font-size: 1.8rem;
     font-weight: 800;
-    letter-spacing: 3px;
+    letter-spacing: -0.5px;
     text-decoration: none;
     color: white;
 }
@@ -1491,7 +1491,7 @@ nav {
     margin-bottom: 3rem;
 }
 .comparison-table { overflow-x: auto; }
-/* Mobile-only Verba feature card */
+/* Mobile-only MicReady feature card */
 .verba-feature-card { display: none; }
 @media (max-width: 767px) {
     .comparison-table { display: none; }
@@ -2128,7 +2128,7 @@ footer p { margin-bottom: 0.5rem; opacity: 0.85; font-size: 0.9rem; }
 }
 @media (max-width: 380px) {
     header { padding-left: 1rem; padding-right: 1rem; }
-    .logo { font-size: 1.5rem; letter-spacing: 2px; }
+    .logo { font-size: 1.5rem; }
     .beta-badge { margin-left: 0.4rem; }
 }
 .feat-info::before { content: ''; position: absolute; inset: -15px; }   /* 44 px touch area */
