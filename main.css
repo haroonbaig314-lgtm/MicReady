@@ -255,6 +255,7 @@ nav {
     color: #ffffff;
     font-weight: 700;
     text-shadow: 0 2px 12px rgba(0,0,0,0.35);
+    text-wrap: balance;
 }
 .hero .hero-desc {
     font-size: 1.15rem;
