@@ -10,7 +10,7 @@ for (const name of PAGES) {
         await rejectConsent(page);
         await expect(page).toHaveTitle(/MicReady/);
         await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /.{40,}/);
-        await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/haroonbaig314-lgtm\.github\.io\/Verba\//);
+        await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /^https:\/\/haroonbaig314-lgtm\.github\.io\/MicReady\//);
         await expect(page.locator('link[rel="manifest"]')).toHaveCount(1);
         const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
         expect(overflow).toBeLessThanOrEqual(0);
@@ -52,7 +52,7 @@ test('sitemap lists every page', async ({ request }) => {
     const xml = await (await request.get('/sitemap.xml')).text();
     for (const name of PAGES) {
         const path = name === 'index.html' ? '' : name;
-        expect(xml).toContain(`<loc>https://haroonbaig314-lgtm.github.io/Verba/${path}</loc>`);
+        expect(xml).toContain(`<loc>https://haroonbaig314-lgtm.github.io/MicReady/${path}</loc>`);
     }
 });
 
