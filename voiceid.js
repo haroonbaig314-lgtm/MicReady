@@ -10,9 +10,9 @@
  * Nothing leaves the device. The model and runtime are files on this site, downloaded
  * only when someone turns voice profiles on, and voiceprints are kept in this browser.
  *
- * Works as a classic <script> (window.VerbaVoiceID) and from Node for accuracy tests.
+ * Works as a classic <script> (window.MicReadyVoiceID) and from Node for accuracy tests.
  */
-var VerbaVoiceID = (function () {
+var MicReadyVoiceID = (function () {
     'use strict';
 
     var RATE = 16000;
@@ -267,5 +267,5 @@ var VerbaVoiceID = (function () {
              attribute: attribute, isLoaded: function () { return !!session; } };
 }());
 
-if (typeof window !== 'undefined') window.VerbaVoiceID = VerbaVoiceID;
-if (typeof module !== 'undefined' && module.exports) module.exports = VerbaVoiceID;
+if (typeof window !== 'undefined') window.MicReadyVoiceID = MicReadyVoiceID;
+if (typeof module !== 'undefined' && module.exports) module.exports = MicReadyVoiceID;

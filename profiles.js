@@ -1,16 +1,16 @@
 /* MicReady MVP: profiles. Several people can practise on one device, each with their own
  * progress history. Everything is stored in this browser only.
  *
- *   verba_profiles   { list: [{ id, name }], active: id }
- *   history          the first profile keeps "verba_history"; others use "verba_history:<id>"
+ *   micready_profiles   { list: [{ id, name }], active: id }
+ *   history          the first profile keeps "micready_history"; others use "micready_history:<id>"
  *
  * Names with swear words, slurs or other offensive words are refused (namecheck.js).
- * Other scripts use window.VerbaProfiles and listen for the "verba:profile" event.
+ * Other scripts use window.MicReadyProfiles and listen for the "micready:profile" event.
  */
 (function () {
     'use strict';
 
-    var KEY = 'verba_profiles';
+    var KEY = 'micready_profiles';
     var FIRST = 'default';
     var MAX_PROFILES = 12;
     var state = load();
@@ -33,9 +33,9 @@
     function find(id) { for (var i = 0; i < state.list.length; i++) if (state.list[i].id === id) return state.list[i]; return null; }
     function cleanName(name) { return String(name || '').replace(/\s+/g, ' ').trim().slice(0, 30); }
     // Swear words, slurs and other offensive words are not allowed in names (namecheck.js).
-    function nameOk(name) { return !window.VerbaNameCheck || window.VerbaNameCheck.allowed(name); }
+    function nameOk(name) { return !window.MicReadyNameCheck || window.MicReadyNameCheck.allowed(name); }
     function announce(reason) {
-        document.dispatchEvent(new CustomEvent('verba:profile', { detail: { id: state.active, reason: reason || 'user' } }));
+        document.dispatchEvent(new CustomEvent('micready:profile', { detail: { id: state.active, reason: reason || 'user' } }));
     }
 
     var api = {
@@ -44,7 +44,7 @@
         active: function () { return find(state.active); },
         activeId: function () { return state.active; },
         get: find,
-        historyKey: function (id) { id = id || state.active; return id === FIRST ? 'verba_history' : 'verba_history:' + id; },
+        historyKey: function (id) { id = id || state.active; return id === FIRST ? 'micready_history' : 'micready_history:' + id; },
         isLocked: function () { return locked; },
         // reason "voice": switched because the voice was recognised (allowed during a session)
         setActive: function (id, reason) {
@@ -70,14 +70,14 @@
         remove: function (id) {
             if (state.list.length < 2 || !find(id)) return false;
             try { localStorage.removeItem(api.historyKey(id)); } catch (e) {}
-            document.dispatchEvent(new CustomEvent('verba:profile-removed', { detail: { id: id } }));
+            document.dispatchEvent(new CustomEvent('micready:profile-removed', { detail: { id: id } }));
             state.list = state.list.filter(function (p) { return p.id !== id; });
             if (state.active === id) state.active = state.list[0].id;
             save(); render(); announce('remove');
             return true;
         }
     };
-    window.VerbaProfiles = api;
+    window.MicReadyProfiles = api;
 
     // ── UI ──
     function $(id) { return document.getElementById(id); }
@@ -163,7 +163,7 @@
         });
     }
 
-    document.addEventListener('verba:session-start', function () { locked = true; closeForm(); render(); });
-    document.addEventListener('verba:session-reset', function () { locked = false; render(); });
+    document.addEventListener('micready:session-start', function () { locked = true; closeForm(); render(); });
+    document.addEventListener('micready:session-reset', function () { locked = false; render(); });
     render();
 }());

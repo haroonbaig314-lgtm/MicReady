@@ -3,11 +3,32 @@
  * The site sets no advertising or analytics cookies. The only optional item is the
  * beehiiv newsletter form, which is loaded from beehiiv's servers and may set its own
  * cookies. It loads only after the visitor allows it. The choice is stored in
- * localStorage under "verba_consent" ("accepted" or "rejected"). Storage keys, events and globals keep
- * the verba prefix from the product's former name, so data saved before the rename still works.
+ * localStorage under "micready_consent" ("accepted" or "rejected").
  */
 (function () {
-    var KEY = 'verba_consent';
+    // Settings and saved practice from before the rename to MicReady move to the new storage
+    // names the first time a page loads, so nothing a visitor saved is lost.
+    var OLD = 'verba_';
+    try {
+        var moved = [];
+        for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (k && k.indexOf(OLD) === 0) moved.push(k);
+        }
+        moved.forEach(function (k) {
+            var to = 'micready_' + k.slice(OLD.length);
+            if (localStorage.getItem(to) === null) localStorage.setItem(to, localStorage.getItem(k));
+            localStorage.removeItem(k);
+        });
+        // The page chose its theme before this ran, so apply a moved dark-mode choice now.
+        if (moved.indexOf(OLD + 'theme') !== -1 && localStorage.getItem('micready_theme') === 'dark') {
+            var dark = document.getElementById('darkCss');
+            if (dark) dark.media = 'all';
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    } catch (e) {}
+
+    var KEY = 'micready_consent';
 
     function getChoice() {
         try { return localStorage.getItem(KEY); } catch (e) { return null; }
@@ -101,7 +122,7 @@
 
     // ── Light / dark theme ──
     // The site opens light. The header button switches to dark and remembers it.
-    var THEME_KEY = 'verba_theme';
+    var THEME_KEY = 'micready_theme';
     var SUN = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/></svg>';
     var MOON = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>';
     var themeBtn = null;
@@ -123,7 +144,7 @@
         document.documentElement.setAttribute('data-theme', theme);
         try { localStorage.setItem(THEME_KEY, theme); } catch (e) {}
         renderThemeButton();
-        document.dispatchEvent(new CustomEvent('verba:theme', { detail: { theme: theme } }));
+        document.dispatchEvent(new CustomEvent('micready:theme', { detail: { theme: theme } }));
     }
     function addThemeButton() {
         var nav = document.querySelector('header nav');
@@ -146,7 +167,7 @@
         renderThemeButton();
     }
 
-    window.VerbaConsent = {
+    window.MicReadyConsent = {
         get: getChoice,
         set: setChoice,
         open: function () { showBanner(true); }

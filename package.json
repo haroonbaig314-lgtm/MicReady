@@ -1,5 +1,5 @@
 {
-  "name": "verba-site",
+  "name": "micready-site",
   "private": true,
   "description": "Automated checks for the MicReady website. The site itself is static and needs no build.",
   "scripts": {

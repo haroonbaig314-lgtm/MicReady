@@ -19,9 +19,9 @@
  * Korean words (and Russian word pieces) anywhere in a word. No filter catches everything.
  *
  * Works as a classic <script> after vendor/obscenity/obscenity.min.js and
- * vendor/wordlists/wordlists.js (window.VerbaNameCheck), and from Node for tests.
+ * vendor/wordlists/wordlists.js (window.MicReadyNameCheck), and from Node for tests.
  */
-var VerbaNameCheck = (function (O, W) {
+var MicReadyNameCheck = (function (O, W) {
     'use strict';
 
     var ALLOWED = [
@@ -164,7 +164,7 @@ var VerbaNameCheck = (function (O, W) {
     api.allowedNames = function () { return ALLOWED.slice(); };
     return api;
 }(typeof Obscenity !== 'undefined' ? Obscenity : require('./vendor/obscenity/obscenity.min.js'),
-  typeof VerbaWordLists !== 'undefined' ? VerbaWordLists : require('./vendor/wordlists/wordlists.js')));
+  typeof MicReadyWordLists !== 'undefined' ? MicReadyWordLists : require('./vendor/wordlists/wordlists.js')));
 
-if (typeof window !== 'undefined') window.VerbaNameCheck = VerbaNameCheck;
-if (typeof module !== 'undefined' && module.exports) module.exports = VerbaNameCheck;
+if (typeof window !== 'undefined') window.MicReadyNameCheck = MicReadyNameCheck;
+if (typeof module !== 'undefined' && module.exports) module.exports = MicReadyNameCheck;

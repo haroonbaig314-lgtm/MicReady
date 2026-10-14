@@ -69,7 +69,7 @@ test('Add a person and Rename refuse an offensive name and explain why', async (
     await expect(page.locator('#profileStatus')).toContainText('Please choose a different name');
     await expect(page.locator('#profileName')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.locator('#profileSelect option')).toHaveCount(1);
-    expect(await page.evaluate(w => window.VerbaProfiles.add(w), word)).toBeNull();
+    expect(await page.evaluate(w => window.MicReadyProfiles.add(w), word)).toBeNull();
     await page.click('#profileCancel');
     // Renaming "Me" to it, with dots between the letters
     await page.click('#profileEditBtn');
@@ -78,7 +78,7 @@ test('Add a person and Rename refuse an offensive name and explain why', async (
     await expect(page.locator('#profileStatus')).toContainText('Please choose a different name');
     await expect(page.locator('#profileSelect option:checked')).toHaveText('Me');
     // A word from another language's list
-    const other = await page.evaluate(() => window.VerbaWordLists.whole.find(w => /^[a-z]+$/.test(w)));
+    const other = await page.evaluate(() => window.MicReadyWordLists.whole.find(w => /^[a-z]+$/.test(w)));
     await page.fill('#profileName', other);
     await page.click('#profileForm button[type=submit]');
     await expect(page.locator('#profileStatus')).toContainText('Please choose a different name');

@@ -1492,10 +1492,10 @@ nav {
 }
 .comparison-table { overflow-x: auto; }
 /* Mobile-only MicReady feature card */
-.verba-feature-card { display: none; }
+.micready-feature-card { display: none; }
 @media (max-width: 767px) {
     .comparison-table { display: none; }
-    .verba-feature-card {
+    .micready-feature-card {
         display: block;
         max-width: 400px;
         margin: 0 auto;
@@ -1505,7 +1505,7 @@ nav {
         padding: 1.75rem 1.5rem;
         box-shadow: 0 4px 20px rgba(45,90,68,0.12);
     }
-    .verba-feature-card h3 {
+    .micready-feature-card h3 {
         font-size: 1.2rem;
         font-weight: 800;
         color: #1e3a2e;
@@ -1513,12 +1513,12 @@ nav {
         text-align: center;
         letter-spacing: -0.3px;
     }
-    .verba-feature-list {
+    .micready-feature-list {
         list-style: none;
         padding: 0;
         margin: 0;
     }
-    .verba-feature-list li {
+    .micready-feature-list li {
         display: flex;
         align-items: baseline;
         gap: 0.65rem;
@@ -1528,8 +1528,8 @@ nav {
         color: #2d3436;
         font-weight: 500;
     }
-    .verba-feature-list li:last-child { border-bottom: none; }
-    .verba-feature-list .checkmark {
+    .micready-feature-list li:last-child { border-bottom: none; }
+    .micready-feature-list .checkmark {
         font-size: 1rem;
         font-weight: 700;
         color: #2d5a44;

@@ -113,7 +113,7 @@ test('in the browser, the microphone analysis finds a held "uh" and a 5-second p
         await page.addInitScript(require('./helpers').FAKE_SPEECH);
         await page.goto('/index.html');
         await page.click('[data-consent="rejected"]');
-        await page.evaluate(() => { window.__hits = 0; document.addEventListener('verba:hesitation', () => window.__hits++); });
+        await page.evaluate(() => { window.__hits = 0; document.addEventListener('micready:hesitation', () => window.__hits++); });
         await page.locator('#micButton').click({ force: true });
         await page.click('#disclaimerConfirm');
         await expect.poll(() => page.evaluate(() => window.__hits), { timeout: 15000 }).toBeGreaterThan(0);

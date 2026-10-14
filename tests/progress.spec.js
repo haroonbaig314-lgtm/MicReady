@@ -14,14 +14,14 @@ test('nothing is saved until the visitor opts in', async ({ page }) => {
     await openDemo(page, { clock: true });
     await expect(page.locator('#progressEmpty')).toContainText('Progress tracking is off');
     await finishSession(page, 'one two three four five six seven eight nine ten ');
-    expect(await page.evaluate(() => localStorage.getItem('verba_history'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('micready_history'))).toBeNull();
 });
 
 test('opting in saves numbers only and shows the panel', async ({ page }) => {
     await openDemo(page, { clock: true });
     await finishSession(page, 'secret words that must never be stored anywhere at all, like this sentence ');
     await page.check('#saveProgress');
-    const raw = await page.evaluate(() => localStorage.getItem('verba_history'));
+    const raw = await page.evaluate(() => localStorage.getItem('micready_history'));
     expect(raw).not.toContain('secret');
     const list = JSON.parse(raw);
     expect(list).toHaveLength(1);
@@ -37,8 +37,8 @@ test('chart, tabs, table and streak with several sessions', async ({ page }) => 
     await openDemo(page);
     await page.evaluate(() => {
         const day = 864e5, now = Date.now();
-        localStorage.setItem('verba_history_opt', '1');
-        localStorage.setItem('verba_history', JSON.stringify([3, 2, 1, 0].map((d, i) => ({
+        localStorage.setItem('micready_history_opt', '1');
+        localStorage.setItem('micready_history', JSON.stringify([3, 2, 1, 0].map((d, i) => ({
             t: now - d * day, dur: 60 + i * 10, words: 150, wpm: 120 + i * 10, fil: 6 - i, fpm: 6 - i,
             score: 70 + i * 5, pau: i, lpau: 0, hed: 0, lang: 'en-US', mode: 'free' }))));
     });
@@ -58,10 +58,10 @@ test('chart, tabs, table and streak with several sessions', async ({ page }) => 
 
 test('clearing history removes it after confirmation', async ({ page }) => {
     await openDemo(page);
-    await page.evaluate(() => localStorage.setItem('verba_history', JSON.stringify([{ t: Date.now(), dur: 60, words: 100, wpm: 100, fil: 1, fpm: 1, score: 90, pau: 1, lpau: 0, hed: 0, lang: 'en-US', mode: 'free' }])));
+    await page.evaluate(() => localStorage.setItem('micready_history', JSON.stringify([{ t: Date.now(), dur: 60, words: 100, wpm: 100, fil: 1, fpm: 1, score: 90, pau: 1, lpau: 0, hed: 0, lang: 'en-US', mode: 'free' }])));
     await page.reload();
     page.once('dialog', d => d.accept());
     await page.click('#progressClear');
-    expect(await page.evaluate(() => localStorage.getItem('verba_history'))).toBeNull();
+    expect(await page.evaluate(() => localStorage.getItem('micready_history'))).toBeNull();
     await expect(page.locator('#progressEmpty')).toBeVisible();
 });
