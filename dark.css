@@ -1,6 +1,6 @@
 /* MicReady dark mode. Linked on every page as #darkCss with media="not all", so the site
    opens light. The sun/moon button (site.js) switches it on by setting media="all",
-   and the choice is remembered in localStorage ("verba_theme"). Loaded last, so it
+   and the choice is remembered in localStorage ("micready_theme"). Loaded last, so it
    overrides the light styles with the same specificity. */
 
 :root {
@@ -64,20 +64,20 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible, [role="
 
 .problem, .features, .how-it-works, .demo-section, .comparison, .testimonials, .faq { background: var(--d-bg); }
 .problem h2, .features h2, .how-it-works h2, .demo-section h2, .comparison h2, .testimonials h2, .faq h2,
-.feature-card h3, .hiw-title, .verba-feature-card h3, .faq-question-text, .testimonial-author,
+.feature-card h3, .hiw-title, .micready-feature-card h3, .faq-question-text, .testimonial-author,
 .modal-card h3, .modal-stat-value, .score-value, .timer, .words-value, .filler-counter-number { color: var(--d-heading); }
 .problem-card h3, .problem-solution, .demo-section h2 .highlight, .faq-icon, .checkmark,
-.highlight-col .checkmark, .verba-feature-list .checkmark, .feat-info { color: var(--d-accent); }
+.highlight-col .checkmark, .micready-feature-list .checkmark, .feat-info { color: var(--d-accent); }
 .feat-info { border-color: var(--d-accent); }
 .problem-card p, .feature-card p, .how-it-works-subtitle, .hiw-desc, .demo-subtitle, .comparison-subtitle,
 .testimonials-subtitle, .faq-subtitle, .faq-answer-inner, .testimonial-role, .modal-stat-label, .score-label,
 .stat-label, .filler-counter-label, .filler-counter-est, .filler-est-note, .lang-selector-label,
 .button-label, .lang-select-arrow, .flip-hint, .comparison-footnote, .testimonials-note, .cross, .neutral { color: var(--d-muted); }
 
-.problem-card, .feature-card, .verba-feature-card, .testimonial-card { background: var(--d-surface); }
+.problem-card, .feature-card, .micready-feature-card, .testimonial-card { background: var(--d-surface); }
 .problem-card { border-color: #3aa868; }
-.verba-feature-card { border-color: #3aa868; }
-.verba-feature-list li { color: var(--d-text); border-color: var(--d-border); }
+.micready-feature-card { border-color: #3aa868; }
+.micready-feature-list li { color: var(--d-text); border-color: var(--d-border); }
 .testimonial-card { border-color: var(--d-border); }
 .testimonial-card:hover { border-color: #3d5246; }
 .testimonial-text { color: var(--d-text); }

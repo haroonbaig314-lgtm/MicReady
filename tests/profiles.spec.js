@@ -36,9 +36,9 @@ test('each person has their own progress history', async ({ page }) => {
     await expect(page.locator('#progressBody')).toBeVisible();
 
     const stored = await page.evaluate(() => {
-        const profiles = JSON.parse(localStorage.getItem('verba_profiles'));
+        const profiles = JSON.parse(localStorage.getItem('micready_profiles'));
         const maya = profiles.list.find(p => p.name === 'Maya');
-        return { mine: JSON.parse(localStorage.getItem('verba_history')).length, maya: JSON.parse(localStorage.getItem('verba_history:' + maya.id)).length };
+        return { mine: JSON.parse(localStorage.getItem('micready_history')).length, maya: JSON.parse(localStorage.getItem('micready_history:' + maya.id)).length };
     });
     expect(stored).toEqual({ mine: 1, maya: 1 });
 
@@ -51,8 +51,8 @@ test('rename and remove a person; their history goes with them', async ({ page }
     await openMvp(page);
     await addPerson(page, 'Sam');
     await page.evaluate(() => {
-        const id = JSON.parse(localStorage.getItem('verba_profiles')).active;
-        localStorage.setItem('verba_history:' + id, JSON.stringify([{ t: Date.now(), dur: 30, words: 60, wpm: 120, fil: 1, fpm: 2, score: 90, pau: 1, lpau: 0, hed: 0, lang: 'en-US', mode: 'free' }]));
+        const id = JSON.parse(localStorage.getItem('micready_profiles')).active;
+        localStorage.setItem('micready_history:' + id, JSON.stringify([{ t: Date.now(), dur: 30, words: 60, wpm: 120, fil: 1, fpm: 2, score: 90, pau: 1, lpau: 0, hed: 0, lang: 'en-US', mode: 'free' }]));
     });
     await page.click('#profileEditBtn');
     await page.fill('#profileName', 'Samuel');
@@ -63,7 +63,7 @@ test('rename and remove a person; their history goes with them', async ({ page }
     page.once('dialog', d => d.accept());
     await page.click('#profileRemove');
     await expect(page.locator('#profileSelect option')).toHaveText(['Me']);
-    const left = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('verba_history:')));
+    const left = await page.evaluate(() => Object.keys(localStorage).filter(k => k.startsWith('micready_history:')));
     expect(left).toEqual([]);
     // The last profile cannot be removed.
     await page.click('#profileEditBtn');

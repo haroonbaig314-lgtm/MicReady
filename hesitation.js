@@ -15,11 +15,11 @@
  * Everything runs locally. Audio never leaves the device.
  *
  * The same file is used three ways:
- *   - as an AudioWorklet module (registers the "verba-hesitation" processor),
- *   - as a classic <script> (exposes window.VerbaHesitationDetector), and
+ *   - as an AudioWorklet module (registers the "micready-hesitation" processor),
+ *   - as a classic <script> (exposes window.MicReadyHesitationDetector), and
  *   - from Node for offline accuracy tests (module.exports).
  */
-var VerbaHesitationDetector = (function () {
+var MicReadyHesitationDetector = (function () {
     'use strict';
 
     // Tuned on Whisper-aligned conversational speech (DisfluencySpeech validation split)
@@ -392,11 +392,11 @@ var VerbaHesitationDetector = (function () {
 }());
 
 if (typeof registerProcessor === 'function') {
-    class VerbaHesitationProcessor extends AudioWorkletProcessor {
+    class MicReadyHesitationProcessor extends AudioWorkletProcessor {
         constructor() {
             super();
             var port = this.port;
-            this.detector = new VerbaHesitationDetector(sampleRate);
+            this.detector = new MicReadyHesitationDetector(sampleRate);
             this.detector.onDetect = function (t) { port.postMessage({ type: 'hesitation', t: t }); };
             this.detector.onPause = function (d) { port.postMessage({ type: 'pause', d: d }); };
             this.detector.onLevel = function (db, floor, noisy, snr) { port.postMessage({ type: 'level', db: db, floor: floor, noisy: noisy, snr: snr }); };
@@ -407,8 +407,8 @@ if (typeof registerProcessor === 'function') {
             return true;
         }
     }
-    registerProcessor('verba-hesitation', VerbaHesitationProcessor);
+    registerProcessor('micready-hesitation', MicReadyHesitationProcessor);
 } else if (typeof window !== 'undefined') {
-    window.VerbaHesitationDetector = VerbaHesitationDetector;
+    window.MicReadyHesitationDetector = MicReadyHesitationDetector;
 }
-if (typeof module !== 'undefined' && module.exports) module.exports = VerbaHesitationDetector;
+if (typeof module !== 'undefined' && module.exports) module.exports = MicReadyHesitationDetector;

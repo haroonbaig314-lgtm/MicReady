@@ -175,7 +175,7 @@
                 // Group practice (MVP) assigns each finished stretch of transcript to whoever was
                 // speaking. Results arrive about half a second after the words, hence the offsets.
                 var sum = function (o) { return Object.keys(o).reduce(function (t, k) { return t + o[k]; }, 0); };
-                document.dispatchEvent(new CustomEvent('verba:chunk', { detail: {
+                document.dispatchEvent(new CustomEvent('micready:chunk', { detail: {
                     start: utterStart - 400, end: Math.max(utterStart, lastActivityTime - 600),
                     words: wordCount(newFinal), hedges: sum(countHedges(newFinal)), hes: unclaimed, fil: sum(countFillers(newFinal))
                 } }));
@@ -231,7 +231,7 @@
     // ── Pauses (from the microphone analysis) ──
     function textEnd() { return accumulatedTranscript.length + lastInterim.length; }
     function notePause(d) {
-        document.dispatchEvent(new CustomEvent('verba:pause-counted', { detail: { d: d, t: Date.now() } }));
+        document.dispatchEvent(new CustomEvent('micready:pause-counted', { detail: { d: d, t: Date.now() } }));
         pauseCount++;
         pauseSeconds += d;
         if (d >= LONG_PAUSE) longPauseCount++;
@@ -241,17 +241,17 @@
         }
         renderCounters();
     }
-    document.addEventListener('verba:pause', function (e) {
+    document.addEventListener('micready:pause', function (e) {
         if (!isRecording || !e.detail) return;
         var d = e.detail.duration;
         // Ignore silence that started before listening resumed (a manual pause).
         if (d > (Date.now() - resumedAt) / 1000 - 0.2) return;
         notePause(d);
     });
-    document.addEventListener('verba:mic-status', function (e) {
+    document.addEventListener('micready:mic-status', function (e) {
         micSignal = e.detail && e.detail.ok ? 'ok' : 'none';
     });
-    document.addEventListener('verba:noise', function (e) {
+    document.addEventListener('micready:noise', function (e) {
         if (isRecording && e.detail && e.detail.noisy) noisySeen = true;
     });
 
@@ -368,7 +368,7 @@
 
     // ── Hesitation sounds ──
     // Sound-based detections arrive from the microphone analysis (see the mic meter script).
-    document.addEventListener('verba:hesitation', function () {
+    document.addEventListener('micready:hesitation', function () {
         if (!isRecording) return;
         var mark = { at: textEnd(), kind: 'hes', t: Date.now() };
         marks.push(mark);
@@ -378,12 +378,12 @@
         popCounter(HES);
         renderTranscript(accumulatedTranscript, lastInterim);
         renderCounters();
-        document.dispatchEvent(new CustomEvent('verba:hes-counted', { detail: { t: mark.t } }));
+        document.dispatchEvent(new CustomEvent('micready:hes-counted', { detail: { t: mark.t } }));
     });
 
     // Voice profiles (MVP): a stretch of speech turned out to be someone else's voice, so the
     // "um"s heard during it are not the speaker's. They stay in the transcript, marked, uncounted.
-    document.addEventListener('verba:other-voice', function (e) {
+    document.addEventListener('micready:other-voice', function (e) {
         if (!e.detail) return;
         var from = e.detail.from, to = e.detail.to, changed = false;
         marks.forEach(function (m) {
@@ -809,7 +809,7 @@
         renderCounters();
         resumedAt = Date.now();
         lockPractice(true);
-        document.dispatchEvent(new CustomEvent('verba:session-start'));
+        document.dispatchEvent(new CustomEvent('micready:session-start'));
 
         var btn = document.getElementById('micButton');
         btn.classList.add('active');
@@ -901,7 +901,7 @@
 
         unlockLangSelector();
         lockPractice(false);
-        document.dispatchEvent(new CustomEvent('verba:session-reset'));
+        document.dispatchEvent(new CustomEvent('micready:session-reset'));
         hideDots();
         renderTranscript('', '');
         buildCounterCards();
@@ -964,7 +964,7 @@
         // Numbers only: other features (progress history, share image) build on this.
         // The transcript is never included.
         var minutes = sessionDuration / 60;
-        document.dispatchEvent(new CustomEvent('verba:session-end', { detail: {
+        document.dispatchEvent(new CustomEvent('micready:session-end', { detail: {
             v: 1,
             t: Date.now(),
             dur: sessionDuration,
@@ -984,7 +984,7 @@
     }
 
     // Scoring, shared with group practice (voice.js) so each person is scored the same way.
-    window.VerbaDemo = { calcScore: calcScore, scoreGrade: scoreGrade, scoreColor: scoreColor, formatTime: formatTime,
+    window.MicReadyDemo = { calcScore: calcScore, scoreGrade: scoreGrade, scoreColor: scoreColor, formatTime: formatTime,
                          LONG_PAUSE: LONG_PAUSE, lang: function () { return currentLang; }, mode: function () { return practiceMode; } };
 
     function capitalizeI(phrase) { return phrase.replace(/\bi\b/g, 'I').replace(/\bi'd\b/g, "I'd"); }
@@ -1139,9 +1139,9 @@
 
         if (!sessionActive && !isRecording) {
             var seen = false;
-            try { seen = !!localStorage.getItem('verba_disclaimer_seen'); } catch (e) { seen = true; }
-            if (!seen && window._verbaShowDisclaimer) {
-                window._verbaShowDisclaimer();
+            try { seen = !!localStorage.getItem('micready_disclaimer_seen'); } catch (e) { seen = true; }
+            if (!seen && window._micReadyShowDisclaimer) {
+                window._micReadyShowDisclaimer();
                 return;
             }
             startRecording();
@@ -1201,14 +1201,14 @@
     });
 
     confirmBtn.addEventListener('click', function () {
-        try { localStorage.setItem('verba_disclaimer_seen', '1'); } catch (e) {}
+        try { localStorage.setItem('micready_disclaimer_seen', '1'); } catch (e) {}
         hide();
         // Trigger the mic button — localStorage is now set so recording starts immediately
         var micBtn = document.getElementById('micButton');
         if (micBtn) micBtn.click();
     });
 
-    window._verbaShowDisclaimer = function () {
+    window._micReadyShowDisclaimer = function () {
         returnFocus = document.activeElement;
         overlay.classList.add('visible');
         setTimeout(function () { confirmBtn.focus(); }, 50);
@@ -1264,7 +1264,7 @@
         if (ok === micOk) return;
         micOk = ok;
         if (micNote) micNote.hidden = ok;
-        document.dispatchEvent(new CustomEvent('verba:mic-status', { detail: { ok: ok } }));
+        document.dispatchEvent(new CustomEvent('micready:mic-status', { detail: { ok: ok } }));
     }
     var noiseNote = document.getElementById('noiseNote'), noisyNow = false;
     function setNoisy(noisy) {
@@ -1272,14 +1272,14 @@
         if (noisy === noisyNow) return;
         noisyNow = noisy;
         if (noiseNote) noiseNote.hidden = !noisy;
-        document.dispatchEvent(new CustomEvent('verba:noise', { detail: { noisy: noisy } }));
+        document.dispatchEvent(new CustomEvent('micready:noise', { detail: { noisy: noisy } }));
     }
     // How far the voice sits above the background, for other features (voice profiles).
-    window.VerbaMicInfo = { snr: null };
+    window.MicReadyMicInfo = { snr: null };
     function onLevel(db, floor, noisy, snr) {
         if (!audioCtx) return;
         setNoisy(noisy);
-        window.VerbaMicInfo.snr = typeof snr === 'number' ? snr : null;
+        window.MicReadyMicInfo.snr = typeof snr === 'number' ? snr : null;
         lastLevelAt = audioCtx.currentTime;
         if (db > -100) lastSoundAt = lastLevelAt;
     }
@@ -1327,24 +1327,24 @@
 
     // "Um"/"uh" detection from the raw signal (hesitation.js). It runs in an AudioWorklet
     // where available, otherwise in a ScriptProcessor. Detections are announced with a
-    // "verba:hesitation" event; the demo script decides whether to count them.
+    // "micready:hesitation" event; the demo script decides whether to count them.
     var micSource = null, workletNode = null, sinkNode = null;
     // Other features (voice profiles) can listen to the microphone while a session runs:
-    // each function in VerbaMicTap.listeners gets (Float32Array chunk, sampleRate).
-    window.VerbaMicTap = window.VerbaMicTap || { listeners: [] };
+    // each function in MicReadyMicTap.listeners gets (Float32Array chunk, sampleRate).
+    window.MicReadyMicTap = window.MicReadyMicTap || { listeners: [] };
     function attachTap(ctx, source) {
-        if (!window.VerbaMicTap.listeners.length || !ctx.createScriptProcessor) return;
+        if (!window.MicReadyMicTap.listeners.length || !ctx.createScriptProcessor) return;
         var node = ctx.createScriptProcessor(4096, 1, 1);
         node.onaudioprocess = function (e) {
             if (!isActive) return;
             var chunk = new Float32Array(e.inputBuffer.getChannelData(0));
-            window.VerbaMicTap.listeners.forEach(function (fn) { try { fn(chunk, ctx.sampleRate); } catch (err) {} });
+            window.MicReadyMicTap.listeners.forEach(function (fn) { try { fn(chunk, ctx.sampleRate); } catch (err) {} });
         };
         source.connect(node);
         node.connect(sinkFor(ctx));
     }
-    function announce() { document.dispatchEvent(new CustomEvent('verba:hesitation')); }
-    function announcePause(d) { document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: d } })); }
+    function announce() { document.dispatchEvent(new CustomEvent('micready:hesitation')); }
+    function announcePause(d) { document.dispatchEvent(new CustomEvent('micready:pause', { detail: { duration: d } })); }
     function sinkFor(ctx) {
         if (!sinkNode || sinkNode.context !== ctx) {
             sinkNode = ctx.createGain();
@@ -1356,9 +1356,9 @@
     // Main-thread version, for browsers without AudioWorklet or when the worklet stays silent.
     function startFallback(ctx) {
         usedFallback = true;
-        if (audioCtx !== ctx || !micSource || !window.VerbaHesitationDetector || !ctx.createScriptProcessor) return;
+        if (audioCtx !== ctx || !micSource || !window.MicReadyHesitationDetector || !ctx.createScriptProcessor) return;
         if (workletNode) { try { workletNode.disconnect(); } catch (e) {} workletNode = null; }
-        var detector = new window.VerbaHesitationDetector(ctx.sampleRate);
+        var detector = new window.MicReadyHesitationDetector(ctx.sampleRate);
         detector.onDetect = announce;
         detector.onPause = announcePause;
         detector.onLevel = onLevel;
@@ -1372,7 +1372,7 @@
         if (ctx.audioWorklet && window.AudioWorkletNode) {
             ctx.audioWorklet.addModule('hesitation.js').then(function () {
                 if (audioCtx !== ctx || usedFallback) return;
-                var node = new AudioWorkletNode(ctx, 'verba-hesitation');
+                var node = new AudioWorkletNode(ctx, 'micready-hesitation');
                 node.port.onmessage = function (e) {
                     if (!e.data) return;
                     if (e.data.type === 'hesitation') announce();

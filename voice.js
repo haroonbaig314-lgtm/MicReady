@@ -9,15 +9,15 @@
  *
  * Voiceprints are computed and kept on this device (localStorage), never uploaded. The model
  * runs in a Web Worker (voice-worker.js). Stored keys:
- *   verba_voice        { consent: true, at, mode: 'solo' | 'group', autoSwitch: bool }
- *   verba_voiceprints  { <profile id>: { v: [256 numbers], at, secs, fv: 2 } }
+ *   micready_voice        { consent: true, at, mode: 'solo' | 'group', autoSwitch: bool }
+ *   micready_voiceprints  { <profile id>: { v: [256 numbers], at, secs, fv: 2 } }
  *                      or { outdated: true, at } where a voiceprint from an earlier version of
  *                      the recognition was deleted and the person is asked to record again
  */
 (function () {
     'use strict';
 
-    var V = window.VerbaVoiceID, P = window.VerbaProfiles;
+    var V = window.MicReadyVoiceID, P = window.MicReadyProfiles;
     if (!V || !P) return;
 
     // Calibrated on LibriSpeech dev-other (33 speakers) and checked on dev-clean (40 speakers),
@@ -50,12 +50,12 @@
         switchCost: 0.1,
         unknown: 0.35
     };
-    function loud() { var s = window.VerbaMicInfo && window.VerbaMicInfo.snr; return typeof s === 'number' && s < CAL.loudSnr; }
+    function loud() { var s = window.MicReadyMicInfo && window.MicReadyMicInfo.snr; return typeof s === 'number' && s < CAL.loudSnr; }
     // A voice recording: 10 s of speech, which takes about 12 s of reading aloud (LibriSpeech,
     // median) and makes a voiceprint as accurate as 20 s does (per 3 s check, 98.1% right vs
     // 98.2%, never wrong). "Finish now" works from 6 s (97.8% right).
     var ENROLL_SECONDS = 10, ENROLL_MIN = 6, ENROLL_HANG = 15;
-    var SETTINGS = 'verba_voice', PRINTS = 'verba_voiceprints';
+    var SETTINGS = 'micready_voice', PRINTS = 'micready_voiceprints';
 
     function $(id) { return document.getElementById(id); }
     function whose(name) { return name === 'Me' ? 'your' : name + '’s'; }
@@ -321,7 +321,7 @@
                 var isLoud = loud();
                 var someoneElse = sure && best.id !== P.activeId() && best.s - sMine >= (isLoud ? CAL.loudMargin : CAL.margin);
                 if (mine && (someoneElse || (!isLoud && sMine < CAL.other))) {
-                    document.dispatchEvent(new CustomEvent('verba:other-voice', { detail: { from: from - 500, to: to + 500 } }));
+                    document.dispatchEvent(new CustomEvent('micready:other-voice', { detail: { from: from - 500, to: to + 500 } }));
                     status('Another voice was heard; its “um”s are not counted.');
                 }
             }
@@ -339,29 +339,29 @@
         if (mode === 'group') { status('Group practice: MicReady is following who speaks.'); renderLive(live, null); }
         else status(enrolledIds().length > 1 ? 'Listening for whose voice this is…' : '');
     }
-    document.addEventListener('verba:session-start', startSession);
-    document.addEventListener('verba:hes-counted', function (e) {
+    document.addEventListener('micready:session-start', startSession);
+    document.addEventListener('micready:hes-counted', function (e) {
         if (!live || !e.detail) return;
         live.hes.push(e.detail.t);
         if (live.mode === 'group') renderLive(live, live.current);
     });
-    document.addEventListener('verba:pause-counted', function (e) { if (live && e.detail) live.pauses.push({ t: e.detail.t, d: e.detail.d }); });
-    document.addEventListener('verba:chunk', function (e) { if (live && e.detail) live.chunks.push(e.detail); });
+    document.addEventListener('micready:pause-counted', function (e) { if (live && e.detail) live.pauses.push({ t: e.detail.t, d: e.detail.d }); });
+    document.addEventListener('micready:chunk', function (e) { if (live && e.detail) live.chunks.push(e.detail); });
     // Group results are worked out before anything else hears that the session ended (a capture
     // listener on window runs first), so the progress panel can save each person's own record.
-    window.addEventListener('verba:session-end', function () {
+    window.addEventListener('micready:session-end', function () {
         var L = live;
         lastGroup = L && L.mode === 'group' ? groupResults(L) : null;
     }, true);
-    document.addEventListener('verba:session-end', function () {
+    document.addEventListener('micready:session-end', function () {
         live = null;
         renderLive(null);
         renderGroup(lastGroup);
         if (lastGroup) status('');
     });
-    document.addEventListener('verba:session-reset', function () { live = null; renderLive(null); });
-    window.VerbaMicTap = window.VerbaMicTap || { listeners: [] };
-    window.VerbaMicTap.listeners.push(tap);
+    document.addEventListener('micready:session-reset', function () { live = null; renderLive(null); });
+    window.MicReadyMicTap = window.MicReadyMicTap || { listeners: [] };
+    window.MicReadyMicTap.listeners.push(tap);
 
     function status(text) { var el = $('voiceStatus'); if (el) el.textContent = text; }
 
@@ -381,7 +381,7 @@
         return { switchCost: CAL.switchCost, unknown: CAL.unknown, longPause: longPause || 3 };
     }
     function groupResults(L) {
-        var D = window.VerbaDemo; if (!D) return null;
+        var D = window.MicReadyDemo; if (!D) return null;
         var A = V.attribute(L.timeline, { hes: L.hes, pauses: L.pauses, chunks: L.chunks }, groupCal(D.LONG_PAUSE));
         var out = [];
         Object.keys(A.people).forEach(function (id) {
@@ -418,7 +418,7 @@
             var head = document.createElement('div'); head.className = 'group-card-head';
             var name = document.createElement('span'); name.className = 'group-name'; name.textContent = r.name;
             var score = document.createElement('span'); score.className = 'group-score'; score.textContent = String(r.score);
-            score.style.color = window.VerbaDemo.scoreColor(r.score);
+            score.style.color = window.MicReadyDemo.scoreColor(r.score);
             var grade = document.createElement('span'); grade.className = 'group-grade'; grade.textContent = r.grade;
             head.appendChild(name); head.appendChild(score); head.appendChild(grade);
             var stats = document.createElement('p'); stats.className = 'group-stats';
@@ -527,14 +527,14 @@
         if ($('voiceEnrollOverlay') && $('voiceEnrollOverlay').classList.contains('visible')) closeEnroll();
         else if ($('voiceConsentOverlay') && $('voiceConsentOverlay').classList.contains('visible')) closeConsent();
     });
-    document.addEventListener('verba:profile', renderPanel);
-    document.addEventListener('verba:profile-removed', function (e) {
+    document.addEventListener('micready:profile', renderPanel);
+    document.addEventListener('micready:profile-removed', function (e) {
         if (e.detail && prints[e.detail.id]) { delete prints[e.detail.id]; savePrints(); }
     });
-    document.addEventListener('verba:session-start', renderPanel);
-    document.addEventListener('verba:session-reset', renderPanel);
+    document.addEventListener('micready:session-start', renderPanel);
+    document.addEventListener('micready:session-reset', renderPanel);
     renderPanel();
 
-    window.VerbaVoice = { settings: function () { return settings; }, enrolled: enrolledIds, isLive: sessionActive, CAL: CAL,
+    window.MicReadyVoice = { settings: function () { return settings; }, enrolled: enrolledIds, isLive: sessionActive, CAL: CAL,
                           lastGroup: function () { return lastGroup; }, _groupResults: groupResults };
 }());

@@ -2,8 +2,8 @@
 const { test, expect } = require('@playwright/test');
 const { openDemo, startSession, counters } = require('./helpers');
 
-const hesitation = page => page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:hesitation')));
-const pause = (page, s) => page.evaluate(d => document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: d } })), s);
+const hesitation = page => page.evaluate(() => document.dispatchEvent(new CustomEvent('micready:hesitation')));
+const pause = (page, s) => page.evaluate(d => document.dispatchEvent(new CustomEvent('micready:pause', { detail: { duration: d } })), s);
 const say = (page, text, isFinal = true) => page.evaluate(([t, f]) => window.__emit(t, f), [text, isFinal]);
 
 test('first mic press shows the privacy notice; Escape closes it', async ({ page }) => {
@@ -128,7 +128,7 @@ test('pauses are counted live and long ones are called out in the summary', asyn
 test('the summary says when background noise limited pause counting to a second or longer', async ({ page }) => {
     await openDemo(page, { clock: true });
     await startSession(page);
-    await page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:noise', { detail: { noisy: true } })));
+    await page.evaluate(() => document.dispatchEvent(new CustomEvent('micready:noise', { detail: { noisy: true } })));
     await page.clock.runFor(5000);
     await pause(page, 1.4);
     await say(page, 'this is a longer practice answer with plenty of words so that the summary has enough to work with today ');

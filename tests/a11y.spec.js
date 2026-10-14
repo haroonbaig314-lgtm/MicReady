@@ -11,7 +11,7 @@ for (const scheme of ['light', 'dark']) {
         test.use({ reducedMotion: 'reduce' });
         // Dark mode is the visitor's choice (header button), so set it before each page loads.
         test.beforeEach(async ({ page }) => {
-            if (scheme === 'dark') await page.addInitScript(() => localStorage.setItem('verba_theme', 'dark'));
+            if (scheme === 'dark') await page.addInitScript(() => localStorage.setItem('micready_theme', 'dark'));
         });
 
         for (const name of PAGES) {
@@ -24,18 +24,18 @@ for (const scheme of ['light', 'dark']) {
 
         test('live demo, progress panel and summary have no WCAG violations', async ({ page }) => {
             await openMvp(page);
-            await page.evaluate(() => localStorage.setItem('verba_history', JSON.stringify([
+            await page.evaluate(() => localStorage.setItem('micready_history', JSON.stringify([
                 { t: Date.now() - 864e5, dur: 60, words: 140, wpm: 128, fil: 6, fpm: 6, score: 72, pau: 3, lpau: 0, hed: 2, lang: 'en-US', mode: 'pitch' },
                 { t: Date.now(), dur: 90, words: 210, wpm: 150, fil: 3, fpm: 2, score: 86, pau: 6, lpau: 0, hed: 1, lang: 'en-US', mode: 'free' }])));
             await page.reload();
             await rejectConsent(page);
             await startSession(page);
             await page.evaluate(() => {
-                document.dispatchEvent(new CustomEvent('verba:hesitation'));
+                document.dispatchEvent(new CustomEvent('micready:hesitation'));
                 window.__emit('so I think we should try it ', true);
             });
             await page.waitForTimeout(2600);
-            await page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:pause', { detail: { duration: 2.2 } })));
+            await page.evaluate(() => document.dispatchEvent(new CustomEvent('micready:pause', { detail: { duration: 2.2 } })));
             await expect(page.locator('#transcript-final .tx-pause')).toHaveCount(1);
             let results = await new AxeBuilder({ page }).include('#demo').withTags(TAGS).analyze();
             expect(summarize(results.violations)).toEqual([]);

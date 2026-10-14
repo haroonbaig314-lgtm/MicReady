@@ -68,18 +68,18 @@ test('a voiceprint from the earlier recognition is deleted and the person is ask
     await page.addInitScript(() => {
         if (sessionStorage.getItem('seeded')) return;
         sessionStorage.setItem('seeded', '1');
-        localStorage.setItem('verba_voice', JSON.stringify({ consent: true, at: 1, mode: 'solo', autoSwitch: true }));
-        localStorage.setItem('verba_voiceprints', JSON.stringify({ default: { v: new Array(256).fill(0.0625), at: 1, secs: 20 } }));
+        localStorage.setItem('micready_voice', JSON.stringify({ consent: true, at: 1, mode: 'solo', autoSwitch: true }));
+        localStorage.setItem('micready_voiceprints', JSON.stringify({ default: { v: new Array(256).fill(0.0625), at: 1, secs: 20 } }));
     });
     await page.addInitScript(FAKE_SPEECH);
     await page.goto('/mvp.html');
     await rejectConsent(page);
     await expect(page.locator('#voiceList li').first()).toContainText('please record again');
     await expect(page.locator('#voiceList li').first().getByRole('button', { name: 'Record again' })).toBeVisible();
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('verba_voiceprints')));
+    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('micready_voiceprints')));
     expect(stored.default.outdated).toBe(true);
     expect(stored.default.v).toBeUndefined();
-    expect(await page.evaluate(() => window.VerbaVoice.enrolled())).toEqual([]);
+    expect(await page.evaluate(() => window.MicReadyVoice.enrolled())).toEqual([]);
 });
 
 test('voice profiles: consent, two voices, automatic switching, ignoring other voices, group practice', async ({ browserName }, testInfo) => {
@@ -124,7 +124,7 @@ test('voice profiles: consent, two voices, automatic switching, ignoring other v
         await page.uncheck('#voiceAutoSwitch');
         await startSession(page);
         await page.waitForTimeout(1500);
-        await page.evaluate(() => document.dispatchEvent(new CustomEvent('verba:hesitation')));
+        await page.evaluate(() => document.dispatchEvent(new CustomEvent('micready:hesitation')));
         await expect(page.locator('#transcript-final .tx-other')).toHaveCount(1, { timeout: 60000 });
         await expect(page.locator('#count-fc-hes')).toHaveText('0');
         await page.locator('#endSessionBtn').click({ force: true });
@@ -154,7 +154,7 @@ test('voice profiles: consent, two voices, automatic switching, ignoring other v
         await expect(page.locator('#saveProgressText')).toHaveText('Save each person\u2019s results to their own progress');
         await page.check('#saveProgress');
         const saved = await page.evaluate(() => {
-            const P = window.VerbaProfiles;
+            const P = window.MicReadyProfiles;
             return P.list().map(p => p.name + ' ' + JSON.parse(localStorage.getItem(P.historyKey(p.id)) || '[]').length);
         });
         expect(saved.sort()).toEqual(['Me 1', 'Sam 1']);
@@ -163,6 +163,6 @@ test('voice profiles: consent, two voices, automatic switching, ignoring other v
         page.once('dialog', d => d.accept());
         await page.click('#voiceDeleteAll');
         await expect(page.locator('#voiceSetup')).toBeVisible();
-        expect(await page.evaluate(() => localStorage.getItem('verba_voiceprints'))).toBeNull();
+        expect(await page.evaluate(() => localStorage.getItem('micready_voiceprints'))).toBeNull();
     });
 });

@@ -4,7 +4,9 @@
  * version. Only this site's own files are cached; requests to other sites
  * (the beehiiv form) are never touched.
  */
-var CACHE = 'verba-v2';
+var CACHE = 'micready-v1';
+// This site's caches, current and earlier, including those named before the rename to MicReady.
+function ours(name) { return name.indexOf('micready-') === 0 || name.indexOf('verba-') === 0; }
 var CORE = [
     './', 'index.html', 'mvp.html', 'future.html', 'privacy.html', 'terms.html', 'refund.html', 'cookies.html', 'data-request.html',
     'main.css', 'demo.js', 'home.js', 'features.js', 'features.css', 'profiles.js', 'namecheck.js', 'vendor/obscenity/obscenity.min.js', 'vendor/wordlists/wordlists.js', 'voice.js', 'voiceid.js', 'voice-worker.js', 'dark.css', 'site.js', 'site.css', 'hesitation.js',
@@ -18,7 +20,7 @@ self.addEventListener('install', function (e) {
 
 self.addEventListener('activate', function (e) {
     e.waitUntil(caches.keys().then(function (keys) {
-        return Promise.all(keys.filter(function (k) { return k.indexOf('verba-') === 0 && k !== CACHE; })
+        return Promise.all(keys.filter(function (k) { return ours(k) && k !== CACHE; })
             .map(function (k) { return caches.delete(k); }));
     }).then(function () { return self.clients.claim(); }));
 });

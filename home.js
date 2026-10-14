@@ -159,16 +159,16 @@
     var elCoaching = document.getElementById('price-coaching');
     var elApps     = document.getElementById('price-apps');
     var elCourses  = document.getElementById('price-courses');
-    var elVerba    = document.getElementById('price-verba');
-    if (!elCoaching || !elApps || !elCourses || !elVerba) return;
+    var elMicReady    = document.getElementById('price-micready');
+    if (!elCoaching || !elApps || !elCourses || !elMicReady) return;
 
     // Reduced-motion: show final values immediately, no animation
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
         elCoaching.textContent = '$100+';
         elApps.textContent     = '$10 to $45';
         elCourses.textContent  = '$12+';
-        elVerba.innerHTML      = '<strong>$6</strong>';
-        elVerba.classList.add('price-land');
+        elMicReady.innerHTML      = '<strong>$6</strong>';
+        elMicReady.classList.add('price-land');
         return;
     }
 
@@ -176,7 +176,7 @@
     elCoaching.textContent = '';
     elApps.textContent     = '';
     elCourses.textContent  = '';
-    elVerba.innerHTML      = '';
+    elMicReady.innerHTML      = '';
 
     var triggered = false;
     var obs = new IntersectionObserver(function (entries) {
@@ -199,8 +199,8 @@
         var t0 = null;
 
         // Show "..." in MicReady while others are counting
-        elVerba.innerHTML = '<strong>...</strong>';
-        elVerba.style.opacity = '1';
+        elMicReady.innerHTML = '<strong>...</strong>';
+        elMicReady.style.opacity = '1';
 
         function tick(ts) {
             if (t0 === null) t0 = ts;
@@ -220,7 +220,7 @@
                 elCoaching.textContent = '$100+';
                 elApps.textContent     = '$10 to $45';
                 elCourses.textContent  = '$12+';
-                setTimeout(runVerba, 400);
+                setTimeout(runMicReady, 400);
             }
         }
 
@@ -228,24 +228,24 @@
     }
 
     // ── Phase 2: fade in MicReady cell (0.3s), then count $0→$6 over 3600ms ──
-    function runVerba() {
+    function runMicReady() {
         var FADE_DURATION = 300;
         var COUNT_DURATION = 3600;
         var landed = false;
 
         // Fade out then fade back in to signal count is starting
-        elVerba.style.transition = 'opacity ' + FADE_DURATION + 'ms ease';
-        elVerba.style.opacity = '0';
+        elMicReady.style.transition = 'opacity ' + FADE_DURATION + 'ms ease';
+        elMicReady.style.opacity = '0';
 
         requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-                elVerba.style.opacity = '1';
+                elMicReady.style.opacity = '1';
             });
         });
 
         // Start counter after fade completes
         setTimeout(function () {
-            elVerba.style.transition = '';
+            elMicReady.style.transition = '';
             var t0 = null;
 
             function tick(ts) {
@@ -255,13 +255,13 @@
                 var eased = 1 - Math.pow(1 - progress, 3);
                 var val = Math.round(eased * 6);
 
-                elVerba.innerHTML = '<strong>$' + val + '</strong>';
+                elMicReady.innerHTML = '<strong>$' + val + '</strong>';
 
                 // Trigger emphasis the exact frame val first reaches 6
                 if (!landed && val >= 6) {
                     landed = true;
-                    elVerba.classList.add('price-land');
-                    setTimeout(function () { elVerba.classList.remove('price-land'); }, 1000);
+                    elMicReady.classList.add('price-land');
+                    setTimeout(function () { elMicReady.classList.remove('price-land'); }, 1000);
                 }
 
                 if (progress < 1) {

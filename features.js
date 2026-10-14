@@ -7,10 +7,10 @@
 (function () {
     'use strict';
 
-    var OPT = 'verba_history_opt';
+    var OPT = 'micready_history_opt';
     // Each profile has its own history. The first profile keeps the original key.
     function historyKey() {
-        return window.VerbaProfiles ? window.VerbaProfiles.historyKey() : 'verba_history';
+        return window.MicReadyProfiles ? window.MicReadyProfiles.historyKey() : 'micready_history';
     }
     var MAX_SESSIONS = 500;
     var CHART_SESSIONS = 30;
@@ -44,7 +44,7 @@
     }
     function saveLast() {
         if (!last || lastSaved) return;
-        var P = window.VerbaProfiles;
+        var P = window.MicReadyProfiles;
         if (lastGroup && P) {
             // Group practice: each person's own part goes to their own progress.
             lastGroup.forEach(function (g) {
@@ -64,10 +64,10 @@
         render();
     }
 
-    document.addEventListener('verba:session-end', function (e) {
+    document.addEventListener('micready:session-end', function (e) {
         last = e.detail;
         lastSaved = false;
-        var g = window.VerbaVoice && window.VerbaVoice.lastGroup && window.VerbaVoice.lastGroup();
+        var g = window.MicReadyVoice && window.MicReadyVoice.lastGroup && window.MicReadyVoice.lastGroup();
         lastGroup = g && g.records && g.records.length ? g.records : null;
         var label = $('saveProgressText');
         if (label && lastGroup) label.textContent = 'Save each person\u2019s results to their own progress';
@@ -88,7 +88,7 @@
     if ($('progressStop')) $('progressStop').addEventListener('click', function () { setOptIn(!optedIn()); render(); });
     if ($('progressClear')) {
         $('progressClear').addEventListener('click', function () {
-            var who = window.VerbaProfiles && window.VerbaProfiles.count() > 1 ? ' for ' + window.VerbaProfiles.active().name : '';
+            var who = window.MicReadyProfiles && window.MicReadyProfiles.count() > 1 ? ' for ' + window.MicReadyProfiles.active().name : '';
             if (!window.confirm('Delete every saved session' + who + ' from this device? This cannot be undone.')) return;
             try { localStorage.removeItem(historyKey()); } catch (e) {}
             render();
@@ -329,7 +329,7 @@
         var list = readHistory(), on = optedIn();
         var empty = $('progressEmpty'), body = $('progressBody');
         if (!empty || !body) return;
-        var P = window.VerbaProfiles;
+        var P = window.MicReadyProfiles;
         var who = P && P.count() > 1 && P.active().name !== 'Me' ? P.active().name : null;
         if ($('progressTitle')) $('progressTitle').textContent = who ? who + '\u2019s progress' : 'Your progress';
         if (!list.length) {
@@ -358,7 +358,7 @@
         $('progressStop').textContent = on ? 'Stop saving sessions' : 'Resume saving sessions';
     }
 
-    document.addEventListener('verba:profile', function () { render(); });
+    document.addEventListener('micready:profile', function () { render(); });
 
     var resizeTimer = null;
     window.addEventListener('resize', function () {
@@ -533,7 +533,7 @@
     }
 
     // Exposed for automated tests.
-    window.VerbaFeatures = { drawCard: drawCard, readHistory: readHistory, streak: streak };
+    window.MicReadyFeatures = { drawCard: drawCard, readHistory: readHistory, streak: streak };
 
     // ── Add to home screen (installable web app) ──
     var deferredPrompt = null;

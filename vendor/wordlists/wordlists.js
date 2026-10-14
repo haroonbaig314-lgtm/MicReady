@@ -1,4 +1,4 @@
-/* Verba: swear words, slurs and other offensive words in the MVP's other languages (Spanish,
+/* MicReady: swear words, slurs and other offensive words in the MVP's other languages (Spanish,
  * French, Mandarin, German, Japanese, Arabic, Hindi, Korean, Italian, Russian), for the profile
  * name check (namecheck.js). English comes from obscenity (vendor/obscenity).
  *
@@ -19,7 +19,7 @@
  *   { whole: words matched as whole words, phrases: matched as whole phrases,
  *     parts: Chinese, Japanese and Korean words and the Russian pieces, matched anywhere }
  */
-var VerbaWordLists = (function () {
+var MicReadyWordLists = (function () {
     var b64 = [
         "eyJ3aG9sZSI6WyIxMy4iLCIyYWRlZWIiLCIzYWJlZXQiLCIzYWdhbGEiLCIzYWhlcmEiLCIzYWtyb290IiwiM2FyYmFneSIsIjNh",
         "cnMiLCIzYXMiLCIzYXNiYSIsIjNhc3MiLCIzYXR0YXkiLCIzYXliYSIsIjNlZXIiLCIzZWwyIiwiM2V6Z2V0ZWsiLCI1YW5pdGgi",
@@ -582,5 +582,5 @@ var VerbaWordLists = (function () {
     return JSON.parse(text);
 }());
 
-if (typeof window !== 'undefined') window.VerbaWordLists = VerbaWordLists;
-if (typeof module !== 'undefined' && module.exports) module.exports = VerbaWordLists;
+if (typeof window !== 'undefined') window.MicReadyWordLists = MicReadyWordLists;
+if (typeof module !== 'undefined' && module.exports) module.exports = MicReadyWordLists;
