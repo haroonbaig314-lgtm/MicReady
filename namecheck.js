@@ -1,9 +1,9 @@
-/* Verba MVP: keeps swear words, slurs and other offensive words out of profile names, in
+/* MicReady MVP: keeps swear words, slurs and other offensive words out of profile names, in
  * English and in the MVP's other languages.
  *
  * English: the word list and the matching come from obscenity (MIT, vendor/obscenity), which reads
  * through capitals, look-alike characters, and digits or symbols used in place of letters, and
- * has its own exceptions for ordinary words. Verba also reads each name a few more ways: with
+ * has its own exceptions for ordinary words. MicReady also reads each name a few more ways: with
  * symbols taken out of each word, with letters typed apart joined up, and with letters typed
  * three or more times cut back.
  *

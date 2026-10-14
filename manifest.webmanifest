@@ -1,6 +1,6 @@
 {
-  "name": "Verba: Pocket-Sized Speaking Coach",
-  "short_name": "Verba",
+  "name": "MicReady: Pocket-Sized Speaking Coach",
+  "short_name": "MicReady",
   "description": "Practice public speaking with real-time feedback on filler words, pace and pauses.",
   "lang": "en",
   "start_url": "./mvp.html",

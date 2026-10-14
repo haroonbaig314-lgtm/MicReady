@@ -1,7 +1,7 @@
-/* Verba MVP: voice profiles.
+/* MicReady MVP: voice profiles.
  *
  * With the visitor's consent, each profile can have a voiceprint made from about 15 seconds
- * of reading aloud. During a session Verba compares the speech it hears with those voiceprints:
+ * of reading aloud. During a session MicReady compares the speech it hears with those voiceprints:
  *   - solo practice: switch to the person who started speaking, and ignore "um"s from other
  *     voices;
  *   - group practice: follow who is speaking as people take turns, and give each person their
@@ -232,11 +232,11 @@
                 src.connect(node); node.connect(sink);
                 enroll.node = node;
             })
-            .catch(function () { setEnrollStage('failed', 'Verba could not use the microphone. Check that this site is allowed to use it, then try again.'); });
+            .catch(function () { setEnrollStage('failed', 'MicReady could not use the microphone. Check that this site is allowed to use it, then try again.'); });
     }
     function finishEnroll() {
         if (!enroll || enroll.finishing) return;
-        if (enroll.secs < ENROLL_MIN) { $('enrollStatus').textContent = 'Keep reading: Verba needs at least ' + ENROLL_MIN + ' seconds of speech.'; return; }
+        if (enroll.secs < ENROLL_MIN) { $('enrollStatus').textContent = 'Keep reading: MicReady needs at least ' + ENROLL_MIN + ' seconds of speech.'; return; }
         enroll.finishing = true;
         stopCapture();
         var e = enroll, total = e.speech.reduce(function (s, f) { return s + f.length; }, 0), all = new Float32Array(total), o = 0;
@@ -260,7 +260,7 @@
             prints[e.id] = { v: Array.prototype.map.call(avg, function (x) { return Math.round(x * 1e5) / 1e5; }), at: Date.now(), secs: Math.round(e.secs), fv: PRINT_VERSION };
             savePrints();
             renderPanel();
-            setEnrollStage('saved', 'Saved. Verba can now recognize ' + whose(P.get(e.id).name) + ' voice.' +
+            setEnrollStage('saved', 'Saved. MicReady can now recognize ' + whose(P.get(e.id).name) + ' voice.' +
                 (clash.length ? ' Note: this voice sounds very like ' + clash.join(' and ') + '. If it is the same person, delete one of the voiceprints.' : ''));
             setTimeout(function () { $('enrollDone').focus(); }, 30);
         }).catch(function () {
@@ -336,7 +336,7 @@
                  timeline: [], hes: [], pauses: [], chunks: [] };
         live.collector = new Collector(onSpeechFrame);
         ensureWorker();
-        if (mode === 'group') { status('Group practice: Verba is following who speaks.'); renderLive(live, null); }
+        if (mode === 'group') { status('Group practice: MicReady is following who speaks.'); renderLive(live, null); }
         else status(enrolledIds().length > 1 ? 'Listening for whose voice this is…' : '');
     }
     document.addEventListener('verba:session-start', startSession);
@@ -428,10 +428,10 @@
             card.appendChild(head); card.appendChild(stats); card.appendChild(tip);
             cards.appendChild(card);
         });
-        var bits = ['Verba followed who was speaking. Each person' + '’' + 's “um”s, pauses and speaking time come from their own turns; their word counts and pace are close estimates.'];
+        var bits = ['MicReady followed who was speaking. Each person' + '’' + 's “um”s, pauses and speaking time come from their own turns; their word counts and pace are close estimates.'];
         if (g.extra.handoffs) bits.push(g.extra.handoffs + ' hand-off' + (g.extra.handoffs > 1 ? 's' : '') + ' between speakers' +
             (g.extra.handoffGap ? ', with an average gap of ' + g.extra.handoffGap + ' s.' : '.'));
-        if (g.extra.unknown) bits.push('Someone Verba did not recognize spoke for about ' + clock(g.extra.unknown) + '; that is not in anyone' + '’' + 's score.');
+        if (g.extra.unknown) bits.push('Someone MicReady did not recognize spoke for about ' + clock(g.extra.unknown) + '; that is not in anyone' + '’' + 's score.');
         note.textContent = bits.join(' ');
         box.hidden = false;
     }

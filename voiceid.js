@@ -1,4 +1,4 @@
-/* Verba: voice profiles. Tells enrolled voices apart, on this device only.
+/* MicReady: voice profiles. Tells enrolled voices apart, on this device only.
  *
  * A short stretch of speech is turned into a voiceprint: 80 log-mel filterbank features
  * per 10 ms (computed here, matching Kaldi's fbank), each channel less its average over the

@@ -1,7 +1,7 @@
 {
   "name": "verba-site",
   "private": true,
-  "description": "Automated checks for the Verba website. The site itself is static and needs no build.",
+  "description": "Automated checks for the MicReady website. The site itself is static and needs no build.",
   "scripts": {
     "test": "playwright test",
     "serve": "node tests/serve.js"

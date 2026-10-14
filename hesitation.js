@@ -1,4 +1,4 @@
-/* Verba: hesitation sound detector ("um", "uh", "euh", "äh", ...).
+/* MicReady: hesitation sound detector ("um", "uh", "euh", "äh", ...).
  *
  * Browser speech recognition drops most filled pauses from its transcript, so this
  * detector works on the raw microphone signal instead. A filled pause is a held,

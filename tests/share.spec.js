@@ -17,7 +17,7 @@ test('story and LinkedIn images download as PNGs of the right size', async ({ pa
     await page.locator('#endSessionBtn').click({ force: true });
     for (const [id, size, suffix] of [['#shareStory', [1080, 1920], '-story.png'], ['#shareWide', [1200, 627], '-linkedin.png']]) {
         const [download] = await Promise.all([page.waitForEvent('download'), page.click(id)]);
-        expect(download.suggestedFilename()).toMatch(new RegExp('^verba-session-\\d{4}-\\d{2}-\\d{2}' + suffix + '$'));
+        expect(download.suggestedFilename()).toMatch(new RegExp('^micready-session-\\d{4}-\\d{2}-\\d{2}' + suffix + '$'));
         const file = test.info().outputPath(download.suggestedFilename());
         await download.saveAs(file);
         expect(pngSize(file)).toEqual(size);

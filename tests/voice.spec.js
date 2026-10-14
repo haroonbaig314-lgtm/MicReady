@@ -108,7 +108,7 @@ test('voice profiles: consent, two voices, automatic switching, ignoring other v
         await page.selectOption('#profileSelect', { label: 'Me' });
     });
 
-    // 3. Sam starts talking while "Me" is selected: Verba switches to Sam.
+    // 3. Sam starts talking while "Me" is selected: MicReady switches to Sam.
     state = await withMic(testInfo, fixture('voice-b-talk.wav'), state, async page => {
         await expect(page.locator('#profileSelect')).toHaveValue('default');
         await startSession(page);
@@ -132,14 +132,14 @@ test('voice profiles: consent, two voices, automatic switching, ignoring other v
         await page.check('#voiceAutoSwitch');
     });
 
-    // 5. Group practice: Verba follows who is speaking as the two take turns, and each person
+    // 5. Group practice: MicReady follows who is speaking as the two take turns, and each person
     //    gets their own score, saved to their own progress.
     await withMic(testInfo, fixture('voice-ab-talk.wav'), state, async page => {
         await page.check('#voiceModeGroup');
         await startSession(page);
         await expect(page.locator('#groupLive .group-chip')).toHaveCount(2);
         await expect(page.locator('#groupLive .group-chip.speaking')).toHaveCount(1, { timeout: 60000 });
-        // Wait until Verba has followed each voice for a while (the recording repeats).
+        // Wait until MicReady has followed each voice for a while (the recording repeats).
         await page.waitForFunction(() => {
             const secs = Array.from(document.querySelectorAll('#groupLive .group-chip'), c => {
                 const m = c.textContent.match(/(\d+):(\d\d)/);

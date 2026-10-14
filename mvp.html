@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verba MVP: Practice Speaking with Live Feedback</title>
-    <meta name="description" content="The full Verba practice tool: live filler, pause and pace feedback, timed practice modes with topics, progress tracking, shareable results and voice profiles. Runs in your browser.">
+    <title>MicReady MVP: Practice Speaking with Live Feedback</title>
+    <meta name="description" content="The full MicReady practice tool: live filler, pause and pace feedback, timed practice modes with topics, progress tracking, shareable results and voice profiles. Runs in your browser.">
     <link rel="preload" href="fonts/inter-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="fonts/fonts.css">
     <link rel="stylesheet" href="site.css">
-    <link rel="canonical" href="https://haroonbaig314-lgtm.github.io/Verba/mvp.html">
-    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="canonical" href="https://haroonbaig314-lgtm.github.io/MicReady/mvp.html">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=2">
     <link rel="manifest" href="manifest.webmanifest">
-    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=2">
     <meta name="theme-color" content="#1e3a2e">
-    <meta property="og:title" content="Verba MVP: Practice Speaking with Live Feedback">
+    <meta property="og:title" content="MicReady MVP: Practice Speaking with Live Feedback">
     <meta property="og:description" content="Live filler, pause and pace feedback, timed practice modes, progress tracking and voice profiles, in your browser.">
-    <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.jpg">
-    <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/Verba/mvp.html">
+    <meta property="og:image" content="https://haroonbaig314-lgtm.github.io/MicReady/og-image.jpg?v=2">
+    <meta property="og:url" content="https://haroonbaig314-lgtm.github.io/MicReady/mvp.html">
     <meta property="og:type" content="website">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <meta property="og:image:alt" content="MicReady logo: a white microphone head resting in a mint check mark on a dark green tile, above the word MicReady, on a light green background">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content="https://haroonbaig314-lgtm.github.io/Verba/og-image.jpg">
-    <meta name="twitter:image:alt" content="Verba logo: a dark green letter V above the word VERBA on a light green background">
+    <meta name="twitter:image" content="https://haroonbaig314-lgtm.github.io/MicReady/og-image.jpg?v=2">
+    <meta name="twitter:image:alt" content="MicReady logo: a white microphone head resting in a mint check mark on a dark green tile, above the word MicReady, on a light green background">
     <link rel="stylesheet" href="main.css">
     <link rel="stylesheet" href="features.css">
     <link rel="stylesheet" href="dark.css" id="darkCss" media="not all">
@@ -43,9 +43,9 @@
             <h3 id="disclaimerTitle">Before You Start</h3>
         </div>
         <div class="disclaimer-body">
-            <p>Word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. Browsers usually remove "um" and "uh" from the transcript, so Verba listens for those sounds directly in your microphone signal. That count is an estimate: it can miss short sounds or occasionally count a long, drawn-out word.</p>
+            <p>Word detection depends on your browser's speech recognition engine. Chrome and Edge on desktop give the best results. Browsers usually remove "um" and "uh" from the transcript, so MicReady listens for those sounds directly in your microphone signal. That count is an estimate: it can miss short sounds or occasionally count a long, drawn-out word.</p>
             <p>For the best experience, use Chrome on a desktop or laptop.</p>
-            <p><strong>Your privacy:</strong> the MVP uses your microphone and your browser's built-in speech recognition. Verba does not record, save, or send your audio or transcript anywhere. Your browser provider (for example Google in Chrome, Microsoft in Edge, or Apple in Safari) may process the audio on its servers to convert it to text. Details are in our <a href="privacy.html#what-we-collect">Privacy Policy</a>.</p>
+            <p><strong>Your privacy:</strong> the MVP uses your microphone and your browser's built-in speech recognition. MicReady does not record, save, or send your audio or transcript anywhere. Your browser provider (for example Google in Chrome, Microsoft in Edge, or Apple in Safari) may process the audio on its servers to convert it to text. Details are in our <a href="privacy.html#what-we-collect">Privacy Policy</a>.</p>
         </div>
         <div class="disclaimer-footer">
             <button class="disclaimer-cancel" id="disclaimerCancel" type="button">Not now</button>
@@ -117,15 +117,15 @@
     <div class="disclaimer-card">
         <div class="disclaimer-header"><h3 id="voiceConsentTitle">Voice profiles use voiceprints</h3></div>
         <div class="disclaimer-body">
-            <p>A voiceprint is a set of numbers that describes how a person sounds. It is biometric information, so Verba asks before making one.</p>
+            <p>A voiceprint is a set of numbers that describes how a person sounds. It is biometric information, so MicReady asks before making one.</p>
             <ul class="consent-points">
-                <li>Verba makes a voiceprint on this device from about 15 seconds of reading aloud, and keeps it only in this browser. It is never uploaded or shared.</li>
+                <li>MicReady makes a voiceprint on this device from about 15 seconds of reading aloud, and keeps it only in this browser. It is never uploaded or shared.</li>
                 <li>It is used only to recognize who is speaking during practice on this device.</li>
                 <li>You can delete one voiceprint, or all voice data, at any time from the Voice profiles panel. Clearing this site&rsquo;s data in your browser deletes it too.</li>
                 <li>Record someone&rsquo;s voice only with their permission. For anyone under 13, a parent or guardian must agree first.</li>
             </ul>
             <p>Details are in our <a href="privacy.html#voice-profiles">Privacy Policy</a>.</p>
-            <label class="consent-check"><input type="checkbox" id="voiceConsentAgree"> I agree to Verba making and storing voiceprints on this device for the people I add.</label>
+            <label class="consent-check"><input type="checkbox" id="voiceConsentAgree"> I agree to MicReady making and storing voiceprints on this device for the people I add.</label>
         </div>
         <div class="disclaimer-footer">
             <button class="disclaimer-cancel" id="voiceConsentCancel" type="button">Not now</button>
@@ -139,7 +139,7 @@
     <div class="disclaimer-card">
         <div class="disclaimer-header"><h3 id="enrollTitle">Record a voice</h3></div>
         <div class="disclaimer-body">
-            <p>Read this aloud at your normal speaking volume. Verba needs about 15 seconds of it and stops on its own when it has enough.</p>
+            <p>Read this aloud at your normal speaking volume. MicReady needs about 15 seconds of it and stops on its own when it has enough.</p>
             <blockquote class="enroll-passage" id="enrollPassage"></blockquote>
             <div class="enroll-meter" id="enrollMeter" role="progressbar" aria-label="Speech recorded" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div class="enroll-bar" id="enrollBar"></div></div>
             <p class="enroll-status" id="enrollStatus" role="status" aria-live="polite"></p>
@@ -155,7 +155,7 @@
 
 <header class="nav-scrolled">
     <nav aria-label="Primary">
-        <a href="index.html" class="logo">VERBA <span class="beta-badge">Beta</span></a>
+        <a href="index.html" class="logo">MicReady <span class="beta-badge">Beta</span></a>
         <div class="nav-links">
             <a href="future.html">Future</a>
         </div>
@@ -166,7 +166,7 @@
 <section class="demo-section mvp-page" id="demo">
     <div class="demo-container">
         <div class="demo-badge">MVP</div>
-        <h1>Verba <span class="highlight">MVP</span></h1>
+        <h1>MicReady <span class="highlight">MVP</span></h1>
         <p class="demo-subtitle">The full practice tool: live feedback on fillers, pauses and pace, timed practice modes with topics, progress tracking, shareable results and voice profiles. Everything runs in your browser.</p>
         <p class="browser-note">Speech recognition works best in Chrome or Edge on desktop.</p>
 
@@ -181,7 +181,7 @@
                 <li class="how-step">
                     <span class="how-num" aria-hidden="true">2</span>
                     <h3>Press the mic and talk</h3>
-                    <p>Verba counts your &ldquo;um&rdquo;s, hedges and pauses as you speak, shows your pace, and marks each &ldquo;um&rdquo; in the transcript.</p>
+                    <p>MicReady counts your &ldquo;um&rdquo;s, hedges and pauses as you speak, shows your pace, and marks each &ldquo;um&rdquo; in the transcript.</p>
                 </li>
                 <li class="how-step">
                     <span class="how-num" aria-hidden="true">3</span>
@@ -248,8 +248,8 @@
 
             <div class="filler-counters" id="fillerCounters"></div>
             <p class="filler-est-note">"Um" and "uh" are counted from the sound of your voice, because browsers usually leave them out of the transcript, and each one is marked in the transcript where it happened. That count is an estimate and is worked out on your device.</p>
-            <p class="noise-note" id="noiseNote" role="status" hidden>Background noise detected. Verba has switched to its noise settings: only pauses of 1 second or longer are counted, and a sound has to be close to your speaking volume to count as an &ldquo;um.&rdquo;</p>
-            <p class="mic-note" id="micNote" role="status" hidden>Verba is not receiving sound for its own analysis in this browser, so &ldquo;um,&rdquo; &ldquo;uh,&rdquo; and pauses can only be estimated from the transcript. Chrome or Edge on a computer gives the full result.</p>
+            <p class="noise-note" id="noiseNote" role="status" hidden>Background noise detected. MicReady has switched to its noise settings: only pauses of 1 second or longer are counted, and a sound has to be close to your speaking volume to count as an &ldquo;um.&rdquo;</p>
+            <p class="mic-note" id="micNote" role="status" hidden>MicReady is not receiving sound for its own analysis in this browser, so &ldquo;um,&rdquo; &ldquo;uh,&rdquo; and pauses can only be estimated from the transcript. Chrome or Edge on a computer gives the full result.</p>
 
             <div class="transcript-box" id="transcript">
                 <div class="typing-dots" id="typingDots" aria-hidden="true"><span></span><span></span><span></span></div><span id="transcript-placeholder" class="transcript-placeholder">Waiting for speech input...</span><span id="transcript-final"></span><span id="transcript-interim" class="interim-text"></span>
@@ -353,7 +353,7 @@
                     <button type="button" class="progress-btn secondary" id="progressClear">Clear my history</button>
                 </div>
             </div>
-            <button type="button" class="install-btn" id="installBtn" hidden>Add Verba to your home screen</button>
+            <button type="button" class="install-btn" id="installBtn" hidden>Add MicReady to your home screen</button>
         </div>
 
         <div class="progress-panel voice-panel" id="voicePanel" aria-labelledby="voiceTitle">
@@ -362,7 +362,7 @@
                 <p class="progress-sub">Voiceprints are made and kept only in this browser on this device. They are never uploaded.</p>
             </div>
             <div id="voiceSetup">
-                <p class="voice-intro">Teach Verba each person&rsquo;s voice. In solo practice, it switches to the right person when they start speaking and ignores other voices nearby. In group practice, it follows who is speaking as people take turns and gives everyone their own score.</p>
+                <p class="voice-intro">Teach MicReady each person&rsquo;s voice. In solo practice, it switches to the right person when they start speaking and ignores other voices nearby. In group practice, it follows who is speaking as people take turns and gives everyone their own score.</p>
                 <button type="button" class="progress-btn" id="voiceSetupBtn">Set up voice profiles</button>
             </div>
             <div id="voiceBody" hidden>
@@ -370,10 +370,10 @@
                 <fieldset class="voice-options">
                     <legend>Session type</legend>
                     <label class="voice-radio"><input type="radio" name="voiceMode" id="voiceModeSolo" value="solo" checked> <span><strong>Solo practice.</strong> One person at a time. Other voices nearby are ignored, so their &ldquo;um&rdquo;s don&rsquo;t count.</span></label>
-                    <label class="voice-radio"><input type="radio" name="voiceMode" id="voiceModeGroup" value="group"> <span><strong>Group practice</strong> (presentations). Several people take turns; Verba follows who is speaking, tracks each person separately, and gives everyone their own score.</span></label>
+                    <label class="voice-radio"><input type="radio" name="voiceMode" id="voiceModeGroup" value="group"> <span><strong>Group practice</strong> (presentations). Several people take turns; MicReady follows who is speaking, tracks each person separately, and gives everyone their own score.</span></label>
                     <label class="save-toggle"><input type="checkbox" id="voiceAutoSwitch" checked> In solo practice, switch to the person who is speaking when a session starts</label>
                 </fieldset>
-                <p class="voice-note">Verba needs about 3 seconds of speech to recognize a voice. It is most accurate in a quiet room and also works with background noise such as a fan or nearby conversation; in a very loud place it is less reliable. The first recording downloads Verba&rsquo;s voice model (about 38&nbsp;MB) from this site; it then works offline.</p>
+                <p class="voice-note">MicReady needs about 3 seconds of speech to recognize a voice. It is most accurate in a quiet room and also works with background noise such as a fan or nearby conversation; in a very loud place it is less reliable. The first recording downloads MicReady&rsquo;s voice model (about 38&nbsp;MB) from this site; it then works offline.</p>
                 <button type="button" class="progress-btn secondary" id="voiceDeleteAll">Delete all voice data and turn voice profiles off</button>
                 <p class="voice-credit">Speaker model: <a href="https://github.com/wenet-e2e/wespeaker" rel="noopener">WeSpeaker</a> ResNet34-LM, trained on VoxCeleb, used under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>. Runs with <a href="https://github.com/microsoft/onnxruntime" rel="noopener">ONNX Runtime Web</a> (MIT).</p>
             </div>
@@ -392,8 +392,8 @@
         <li><a href="data-request.html">Data Requests</a></li>
         <li><button type="button" data-open-consent>Cookie Settings</button></li>
     </ul>
-    <p class="business-details">Verba is an independent student project operated by Haroon Baig in Connecticut, United States. Verba is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
-    <p class="business-details">&copy; 2025&ndash;2026 Verba. All rights reserved.</p>
+    <p class="business-details">MicReady is an independent student project operated by Haroon Baig in Connecticut, United States. MicReady is not affiliated with or endorsed by Northeastern University. Contact: <a href="mailto:baig.h@northeastern.edu">baig.h@northeastern.edu</a></p>
+    <p class="business-details">&copy; 2025&ndash;2026 MicReady. All rights reserved.</p>
 </footer>
 <script src="hesitation.js" defer></script>
 <script src="site.js" defer></script>

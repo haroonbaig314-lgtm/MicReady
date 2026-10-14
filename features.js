@@ -1,4 +1,4 @@
-/* Verba MVP: progress history (per profile), results image, and "add to home screen".
+/* MicReady MVP: progress history (per profile), results image, and "add to home screen".
  *
  * Everything here runs in the browser. Session history is stored only in this
  * browser's localStorage, and only after the visitor turns progress tracking on.
@@ -374,16 +374,6 @@
         return href.replace(/^https?:\/\//, '').replace(/index\.html$/, '').replace(/\/$/, '');
     }
 
-    function spacedText(ctx, text, cx, y, spacing) {
-        var widths = text.split('').map(function (ch) { return ctx.measureText(ch).width; });
-        var total = widths.reduce(function (s, w) { return s + w; }, 0) + spacing * (text.length - 1);
-        var x = cx - total / 2;
-        var align = ctx.textAlign;
-        ctx.textAlign = 'left';
-        text.split('').forEach(function (ch, i) { ctx.fillText(ch, x, y); x += widths[i] + spacing; });
-        ctx.textAlign = align;
-    }
-
     function roundRect(ctx, x, y, w, h, r) {
         ctx.beginPath();
         ctx.moveTo(x + r, y);
@@ -452,7 +442,7 @@
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'center';
             ctx.font = '800 76px ' + F;
-            spacedText(ctx, 'VERBA', W / 2, 230, 22);
+            ctx.fillText('MicReady', W / 2, 230);
             ctx.font = '500 38px ' + F;
             ctx.fillStyle = 'rgba(255,255,255,0.82)';
             ctx.fillText(sub, W / 2, 310);
@@ -472,10 +462,7 @@
             ctx.fillStyle = '#ffffff';
             ctx.textAlign = 'left';
             ctx.font = '800 44px ' + F;
-            ctx.save();
-            ctx.textAlign = 'center';
-            spacedText(ctx, 'VERBA', 60 + 96, 92, 12);
-            ctx.restore();
+            ctx.fillText('MicReady', 60, 92);
             ctx.font = '500 24px ' + F;
             ctx.fillStyle = 'rgba(255,255,255,0.82)';
             ctx.fillText(sub, 60, 134);
@@ -487,7 +474,12 @@
             ctx.textAlign = 'left';
             ctx.fillStyle = 'rgba(255,255,255,0.82)';
             ctx.font = '500 22px ' + F;
-            ctx.fillText('Practice for free at ' + siteLabel(), left, 560);
+            ctx.fillText('Practice for free at', left, 540);
+            var url = siteLabel(), usize = 24, room2 = W - left - 40;
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '700 ' + usize + 'px ' + F;
+            while (usize > 14 && ctx.measureText(url).width > room2) { usize--; ctx.font = '700 ' + usize + 'px ' + F; }
+            ctx.fillText(url, left, 574);
         }
         return c;
     }
@@ -506,7 +498,7 @@
     function fileName(kind) {
         var d = new Date(last.t);
         var ymd = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-        return 'verba-session-' + ymd + (kind === 'wide' ? '-linkedin' : '-story') + '.png';
+        return 'micready-session-' + ymd + (kind === 'wide' ? '-linkedin' : '-story') + '.png';
     }
     function download(kind) {
         if (!last) return;
@@ -535,7 +527,7 @@
             cardBlob('story').then(function (blob) {
                 if (!blob) return;
                 var file = new File([blob], fileName('story'), { type: 'image/png' });
-                navigator.share({ files: [file], title: 'My Verba practice session', text: 'I scored ' + last.score + ' in a Verba practice session.' }).catch(function () {});
+                navigator.share({ files: [file], title: 'My MicReady practice session', text: 'I scored ' + last.score + ' in a MicReady practice session.' }).catch(function () {});
             });
         });
     }

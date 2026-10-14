@@ -1,4 +1,4 @@
-/* Verba service worker: lets the site open offline and install as an app.
+/* MicReady service worker: lets the site open offline and install as an app.
  *
  * Network first, cache as fallback, so visitors online always get the latest
  * version. Only this site's own files are cached; requests to other sites

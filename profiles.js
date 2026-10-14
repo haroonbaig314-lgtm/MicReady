@@ -1,4 +1,4 @@
-/* Verba MVP: profiles. Several people can practise on one device, each with their own
+/* MicReady MVP: profiles. Several people can practise on one device, each with their own
  * progress history. Everything is stored in this browser only.
  *
  *   verba_profiles   { list: [{ id, name }], active: id }
