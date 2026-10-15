@@ -203,12 +203,17 @@ test('when the browser gives the sound analysis only silence, a notice shows and
     await page.addInitScript(() => {
         navigator.mediaDevices.getUserMedia = async () => new AudioContext().createMediaStreamDestination().stream;
     });
-    await openDemo(page);
+    await openDemo(page, { clock: true });
     await startSession(page);
-    await expect(page.locator('#micNote')).toBeVisible({ timeout: 10000 });
+    // The signal check runs once a second of page time; the silence itself is judged on the
+    // audio clock, which keeps real time.
+    await expect.poll(async () => {
+        await page.clock.runFor(1000);
+        return page.locator('#micNote').isVisible();
+    }, { timeout: 15000 }).toBe(true);
     await say(page, 'here is my first point ');
-    await page.waitForTimeout(2300);
+    await page.clock.runFor(2300);
     await say(page, 'and here is the next one ');
     await expect(page.locator('#pauseDisplay')).toHaveText('1');
-    await expect(page.locator('#transcript-final .tx-pause')).toHaveText([/^2\.\d s pause$/]);
+    await expect(page.locator('#transcript-final .tx-pause')).toHaveText(['2.3 s pause']);
 });
