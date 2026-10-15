@@ -22,9 +22,18 @@ async function rejectConsent(page) {
 
 // Opens a page with the live demo (the home page's lightweight demo by default), using the
 // fake speech engine, past the cookie banner.
+//
+// With clock: true, page time moves only when the test moves it (page.clock.runFor). An
+// installed clock otherwise keeps following real time between steps, and on a busy machine
+// those extra seconds change what the demo counts: a gap of 2 seconds or more between two
+// transcript results counts as a pause whenever the sound analysis reports no signal.
 async function openDemo(page, { clock = false, path = 'index.html' } = {}) {
     await page.addInitScript(FAKE_SPEECH);
-    if (clock) await page.clock.install();
+    if (clock) {
+        const start = Date.now();
+        await page.clock.install({ time: start });
+        await page.clock.pauseAt(start + 1000);
+    }
     await page.goto('/' + path);
     await rejectConsent(page);
 }
